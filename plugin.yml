@@ -1,0 +1,7 @@
+name: GUIM
+main: com.m0pt0pmatt.GUIM.GUIM
+version: 0.3
+softdepend: [Vault]
+commands:
+    GUIM:
+        description: the everything command
