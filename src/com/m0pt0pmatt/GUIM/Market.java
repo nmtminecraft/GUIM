@@ -3,6 +3,7 @@ package com.m0pt0pmatt.GUIM;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,7 +34,7 @@ public class Market{
 	/**
 	 * Default Constructor
 	 */
-	public Market(String owner, String name, Location accessBlock, JavaPlugin plugin) {
+	public Market(String owner, String name, Set<Location> accessBlocks, JavaPlugin plugin) {
 		//create internal objects
 		marketItems = new ArrayList<MarketSale>();
 		freeItems = new ArrayList<MarketSale>();
@@ -45,7 +46,7 @@ public class Market{
 		
 		//set access block
 		this.accessBlocks = new HashSet<Location>();
-		this.accessBlocks.add(accessBlock);
+		this.accessBlocks = accessBlocks;
 		
 		this.configuration = new ConfigManager(plugin, (owner + "--" + name + ".yml"));
 		

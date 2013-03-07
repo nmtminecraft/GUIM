@@ -3,6 +3,8 @@ package com.m0pt0pmatt.GUIM;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,10 +17,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import edu.nmt.minecraft.HomeWorldPlugin.market.MarketItemStack;
 
 
 /**
@@ -198,6 +199,8 @@ public class GUIM extends JavaPlugin{
 
 
 	
+	
+	
 	private void addMarket(File file) {
 		ConfigManager cm = new ConfigManager(this, file.getName());
 		FileConfiguration config = cm.getConfig();
@@ -208,53 +211,128 @@ public class GUIM extends JavaPlugin{
 		String owner = fullName.split("--")[0];
 		
 		//get the access locations
-		Location location;
-		String world = null;
-		double x, y, z;
-		float pitch, yaw;
-		HashSet<Location> locations;
+		HashSet<Location> locations = this.getLocations(config);
+		
+		//get the items that are on the market
+		ArrayList<MarketSale> marketItems = this.getSales(config, "marketItems");
+		
+		//get the items that have been requested
+		ArrayList<MarketSale> requestedItems = this.getSales(config, "requestedItems");
+		
+		//get the free items
+		ArrayList<MarketSale> freeItems = this.getSales(config, "freeItems");
+		
+		//create the market
+		Market market = new Market(owner, name, locations, this);
+		market.marketItems = marketItems;
+		market.requestedItems = requestedItems;
+		market.freeItems = freeItems;
+		
+		//add the market
+		marketNames.put(fullName, market);
+		for (Location location: locations){
+			marketLocations.put(location, market);
+		}
+		
+		
+	}
+	
+	private HashSet<Location> getLocations(FileConfiguration config){
+		HashSet<Location> locations = new HashSet<Location>();
 		
 		//get the memory section
-		MemorySection accessLocationMemory = (MemorySection) config.get("accessLocations");
-		//get each location
-		Set<String> accessLocations = accessLocationMemory.getKeys(false);
-		//for each location
-		for (String index: accessLocations){
+		MemorySection memory = (MemorySection) config.get("accessLocations");
 
-			//get the properties
-			Set<String> properties = ((MemorySection) accessLocationMemory.get(index)).getKeys(false);		
+		//for each location
+		for (String index: memory.getKeys(false)){
+			
+			String world = null;
+			double x = 0, y = 0, z = 0;
+			float pitch = 0, yaw = 0;
 			
 			//for each property
-			for (String s: properties){
+			for (String s: ((MemorySection) memory.get(index)).getKeys(false)){
 				if (s.equals("world")){
-					world = (String) accessLocationMemory.get(index + "." + s);
+					world = (String) memory.get(index + "." + s);
 				}
 				else if (s.equals("x")){
-					x = (Double) accessLocationMemory.get(index + "." + s);
+					x = (Double) memory.get(index + "." + s);
 				}
 				else if (s.equals("y")){
-					y = (Double) accessLocationMemory.get(index + "." + s);
+					y = (Double) memory.get(index + "." + s);
 				}
 				else if (s.equals("z")){
-					z = (Double) accessLocationMemory.get(index + "." + s);
+					z = (Double) memory.get(index + "." + s);
 				}
 				else if (s.equals("pitch")){
-					pitch = (String) accessLocationMemory.get(index + "." + s);
+					pitch = (Float) memory.get(index + "." + s);
 				}
 				else if (s.equals("yaw")){
-					yaw = (String) accessLocationMemory.get(index + "." + s);
+					yaw = (Float) memory.get(index + "." + s);
 				}
 			}
 			
-			Location location = new Location(null, 0, 0, 0, 0, 0);
+			locations.add(new Location(Bukkit.getWorld(world), x, y, z, pitch, yaw));
 			
 		}
-		
-		MemorySection marketItems = (MemorySection) config.get("marketItems");
-		
-		//Market market;
-		
+		return locations;
 	}
+	
+	private ArrayList<MarketSale> getSales(FileConfiguration config, String whichList){
+		MemorySection memory = (MemorySection) config.get(whichList);
+		ArrayList<MarketSale> sales = new ArrayList<MarketSale>();
+		
+		
+		for (String index: memory.getKeys(false)){
+			LinkedList<ItemStack> items = new LinkedList<ItemStack>();
+			
+			//get the properties
+			Set<String> saleProperties = ((MemorySection) memory.get(index)).getKeys(false);
+			Map<String, Object> saleMap = new HashMap<String, Object>();
+			
+			//add the properties to the new map
+			for (String s: saleProperties){
+			    if (s.equals("items")){
+			    	Set<String> itemProperties = ((MemorySection) memory.get(index + ".items")).getKeys(false);
+			    	Map<String, Object> itemMap = new HashMap<String, Object>();
+			    	for (String si: itemProperties){
+		    				
+	    				//fix for enchantments
+	    				if (si.equals("enchantments")){
+	    					//get all the enchantments
+	    					Set<String> enchantments = ((MemorySection)memory.get(index + "." + s + "." + si)).getKeys(false);
+	    					
+	    					Map<String, Object> enchantmentMap = new HashMap<String, Object>();
+	    					for (String enchantment: enchantments){
+	    						enchantmentMap.put(enchantment, memory.get(index + "." + s + "." + si + "." + enchantment));
+	    					}
+
+	    					itemMap.put(si, enchantmentMap);
+	    				}
+	    				else{
+	    					itemMap.put(si, memory.get(index + "." + s + "." + si));
+	    				}
+	    				
+			    	}
+		    			
+	    			//create and add the new item
+	    			ItemStack item = ItemStack.deserialize(itemMap);
+	    			items.add(item);
+			    	
+			    	
+			    }else {
+			    	saleMap.put(s, memory.get(index + "." + s));
+			    }
+			    saleMap.put("items", items);
+			}
+			
+			//create and add the new sale
+			sales.add(MarketSale.deserialize(saleMap));
+		}
+		
+		return sales;
+	}
+	
 
 	public static PlayerInfo getPlayerInfo(String playerName){
 		return playerInfo.get(playerName);

@@ -50,6 +50,16 @@ public class MarketSale {
 	 */
 	private int pickedUp;
 	
+	
+	public MarketSale(){
+		this.seller = "";
+		this.unitPrice = 0;
+		this.numPerUnits = 1;
+		this.quantity = 1;
+		this.fulfilled = 0;
+		items = new LinkedList<ItemStack>();
+	}
+	
 	/**
 	 * Default constructor
 	 * @param seller
@@ -252,10 +262,7 @@ public class MarketSale {
 		LinkedList<ItemStack> items = new LinkedList<ItemStack>();
 		if (args.containsKey("items")){
 			int i = 0;
-			Map<String, Object> itemsMap = (Map<String, Object>) args.get("items");
-			while (itemsMap.containsKey(String.valueOf(i))){
-				items.add(ItemStack.deserialize((Map<String, Object>) itemsMap.get(String.valueOf(i))));
-			}
+			items = (LinkedList<ItemStack>) args.get("items");
 		}
 		
 		//create the marketsale

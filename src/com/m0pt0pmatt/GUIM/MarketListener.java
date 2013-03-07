@@ -1,6 +1,9 @@
 package com.m0pt0pmatt.GUIM;
 
+import java.util.HashSet;
+
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -1397,9 +1400,10 @@ public class MarketListener implements Listener{
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK){
 			if (playerInfo.creatingMarket == true){
 				event.setCancelled(true);
-				player.sendMessage("a");
-				//create market
-				Market m = new Market(player.getName(), playerInfo.marketName, event.getClickedBlock().getLocation(), plugin);
+				HashSet<Location> locations = new HashSet<Location>();
+				locations.add(event.getClickedBlock().getLocation());
+				
+				Market m = new Market(player.getName(), playerInfo.marketName, locations, plugin);
 				GUIM.marketNames.put(m.getFullName(), m);
 				GUIM.marketLocations.put(event.getClickedBlock().getLocation(), m);
 				playerInfo.creatingMarket = false;
