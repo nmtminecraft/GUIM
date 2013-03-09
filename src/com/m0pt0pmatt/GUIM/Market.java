@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.bukkit.Location;
@@ -30,15 +31,18 @@ public class Market{
 	private Set<Location> accessBlocks;
 	private String name = null;
 	private String owner = null;
+	public HashMap<String, Integer> numSales;
+	public static int maxNumber = 10;
 
 	/**
 	 * Default Constructor
 	 */
-	public Market(String owner, String name, Set<Location> accessBlocks, JavaPlugin plugin) {
+	public Market(String owner, String name, Set<Location> accessBlocks, HashMap<String, Integer> numSales, JavaPlugin plugin) {
 		//create internal objects
 		marketItems = new ArrayList<MarketSale>();
 		freeItems = new ArrayList<MarketSale>();
 		requestedItems = new ArrayList<MarketSale>();
+		this.numSales = numSales;
 		
 		//set the names
 		this.name = name;
@@ -68,8 +72,7 @@ public class Market{
 		//configuration.getFile().delete();
 		HashMap<String, Map<String, Object>> marketItems;
 		HashMap<String, Map<String, Object>> requestedItems;
-		HashMap<String, Map<String, Object>> freeItems;
-		
+		HashMap<String, Map<String, Object>> freeItems;		
 		
 		configuration.getConfig().set("owner", owner);
 		configuration.getConfig().set("name", name);
@@ -111,7 +114,9 @@ public class Market{
 			freeItems.put(Integer.toString(i), m.serialize());
 			i++;
 		}
-		configuration.getConfig().createSection("freeItems", freeItems);	
+		configuration.getConfig().createSection("freeItems", freeItems);
+		
+		configuration.getConfig().createSection("currentSales", numSales);
 		configuration.saveConfig();
 		
 		System.out.println("[HomeWorldPlugin] Saved market");
@@ -122,53 +127,7 @@ public class Market{
 	 * load market data from file
 	 */
 	public void load(){
-//
-//		//clear the old market
-//		market.clear();
-//		
-//		//get each item
-//		MemorySection itemlocation = (MemorySection) configuration.getConfig().get("items");
-//		
-//		if (itemlocation == null){
-//			return;
-//		}
-//		
-//		Set<String> items = itemlocation.getKeys(false);
-//		for (String index: items){
-//
-//			//get the properties
-//			Set<String> itemProperties = ((MemorySection) itemlocation.get(index)).getKeys(false);
-//			
-//			//create a new mapping for the properties
-//			Map<String, Object> map = new HashMap<String, Object>();
-//			
-//			//add the properties to the new map
-//			for (String s: itemProperties){
-//				
-//				//fix for enchantments
-//				if (s.equals("enchantments")){
-//					//get all the enchantments
-//					Set<String> enchantments = ((MemorySection)itemlocation.get(index + "." + s)).getKeys(false);
-//					
-//					Map<String, Object> enchantmentMap = new HashMap<String, Object>();
-//					for (String enchantment: enchantments){
-//						enchantmentMap.put(enchantment, itemlocation.get(index + "." + s + "." + enchantment));
-//					}
-//
-//					map.put(s, enchantmentMap);
-//				}
-//				else{
-//					map.put(s, itemlocation.get(index + "." + s));
-//				}
-//				
-//			}
-//			
-//			//create and add the new item
-//			MarketSale item = MarketSale.deserialize(map);
-//			market.add(item);
-//		}
-//		
-//		System.out.println("[HomeWorldPlugin] Loaded Market");
+
 	}
 
 	public String getFullName() {
@@ -190,5 +149,35 @@ public class Market{
 		
 	}
 	
+	public int getNumSales(String playerName){
+		Integer num = numSales.get(playerName);
+		if (num == null){
+			return -1;
+		}
+		else return num;
+	}
+
+	public void addPlayer(String playerName) {
+		numSales.put(playerName, 0);
+	}
+
+	public void decrementPlayer(String playerName) {
+		int num = numSales.get(playerName);
+		num = num - 1;
+		if (num < 0){
+			num = 0;
+		}
+		numSales.remove(playerName);
+		numSales.put(playerName, num);
+		
+	}
+	
+	public void IncrementPlayer(String playerName) {
+		int num = numSales.get(playerName);
+		num = num++;
+		numSales.remove(playerName);
+		numSales.put(playerName, num);
+		
+	}
 	
 }

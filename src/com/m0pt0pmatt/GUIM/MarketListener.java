@@ -1,5 +1,6 @@
 package com.m0pt0pmatt.GUIM;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.bukkit.Bukkit;
@@ -42,6 +43,8 @@ public class MarketListener implements Listener{
 	 */
 	@EventHandler(priority = EventPriority.HIGH)
 	public void marketStart(PlayerInteractEvent event) {
+		
+		
 		//get the player and the PlayerInfo
 		Player player = event.getPlayer();
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
@@ -61,6 +64,19 @@ public class MarketListener implements Listener{
 		Market market = GUIM.marketLocations.get(event.getClickedBlock().getLocation());
 		if (market == null){
 			return;
+		}
+		
+		//add a player count if there doesn't exist one
+		if (market.getNumSales(player.getName()) == -1){
+			market.addPlayer(player.getName());
+		}
+		
+		//if there is no economy, dont try anything
+		if (GUIM.economy == null){
+			if (!GUIM.setupEconomy()){
+				event.getPlayer().sendMessage("Error. No economy plugin found. Cannot use markets.");
+				return;
+			}
 		}
 		
 		//set the playerInfo correctly
@@ -285,6 +301,13 @@ public class MarketListener implements Listener{
 			
 			//if request menu and book
 			if (menu[0].equals("request") && event.getCurrentItem().getType().equals(Material.WRITTEN_BOOK)){
+				//make sure the player is allowed to 
+				if (market.getNumSales(player.getName()) >= market.maxNumber){
+					player.sendMessage("You have too many things on this market.");
+					return;
+				}
+				
+				
 				//if the book has correct syntax
 				if (checkBook(player, event)){
 					//goto the confirm trade request
@@ -337,6 +360,11 @@ public class MarketListener implements Listener{
 
 		// if sell item button was pressed
 		if (event.getSlot() == MenuPainter.getRight(inv, 1) && !menu[0].equals("request")) {
+			if (market.getNumSales(player.getName()) >= market.maxNumber){
+				player.sendMessage("You have too many things on this market.");
+				return;
+			}
+			
 			// set chest up for item menu
 			player.sendMessage("Choose items you wish to sell");
 			player.sendMessage("Choose how many of each item");
@@ -518,10 +546,12 @@ public class MarketListener implements Listener{
 					playerInfo.menu = playerInfo.menu.split(":")[0].concat(":view");
 					
 					MenuPainter.paintMenu(player);
+					
+					//rid the temp
+					playerInfo.temp = null;
 				}
 				
-				//rid the temp
-				playerInfo.temp = null;
+				
 
 				return;
 			}
@@ -569,7 +599,7 @@ public class MarketListener implements Listener{
 
 		// buy button was pressed
 		if (event.getSlot() == MenuPainter.getRight(inv, 1)) {
-			player.sendMessage("You pressed the buy button");
+			player.sendMessage("You pressed the confirm button");
 			
 			//make sure player has funds
 			if (GUIM.economy.getBalance(player.getName()) < (playerInfo.temp.getUnitQuantity() * playerInfo.temp.getUnitPrice())){
@@ -591,6 +621,10 @@ public class MarketListener implements Listener{
 			
 			//update the menu of anyone who was viewing the new change
 			GUIM.updateMenu(market.getFullName(), playerInfo.menu);
+			
+			int num = market.numSales.get(player.getName()); 
+			market.numSales.remove(player.getName());
+			market.numSales.put(player.getName(), num + 1);
 			
 			return;
 
@@ -982,6 +1016,11 @@ public class MarketListener implements Listener{
 		takeItems(player, playerInfo.temp, playerInfo.temp.getUnitQuantity());
 		
 		GUIM.marketNames.get(playerInfo.currentMarket).marketItems.add(sale);
+		
+		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
+		int num = market.numSales.get(player.getName()); 
+		market.numSales.remove(player.getName());
+		market.numSales.put(player.getName(), num + 1);
 		return true;
 		
 	}
@@ -1078,7 +1117,9 @@ public class MarketListener implements Listener{
 		if (marketSale.getTotalQuantity() <= 0){
 			for (MarketSale item: market.marketItems){
 				if (item.equals(marketSale)){
+					market.decrementPlayer(marketSale.getSeller());
 					market.marketItems.remove(item);
+					
 					break;
 				}
 			}
@@ -1142,8 +1183,10 @@ public class MarketListener implements Listener{
 		//check if the sale is done and picked up
 		if (marketSale.getPickedUp() == marketSale.getUnitQuantity()){
 			//remove the sale
+			market.decrementPlayer(marketSale.getSeller());
 			market.requestedItems.remove(marketSale);
 			GUIM.updateMenu(playerInfo.marketName, "request:view");
+			
 			return true;
 		}
 		
@@ -1185,6 +1228,7 @@ public class MarketListener implements Listener{
 	 * @return whether or not a player can afford an item
 	 */
 	private static boolean playerCanAfford(Player player, MarketSale item, int quantity) {
+		
 		double money = GUIM.economy.getBalance(player.getName());
 
 		if (money >= (item.getUnitPrice() * quantity)) {
@@ -1375,6 +1419,19 @@ public class MarketListener implements Listener{
 
 
 	public void setupMarket(Player player, String name) {
+		
+		//make sure player has permission
+		if (!player.hasPermission("GUIM.create")){
+			player.sendMessage("Sorry, you do not have permission to do that.");
+			return;
+		}
+		
+		//make sure that marketname is not already in use
+		if (GUIM.marketNames.get(player.getName() + "--" + name) != null){
+			player.sendMessage("You already have a market with that name.");
+			return;
+		}
+		
 		player.sendMessage("Please right-click the block which you would like to make into a market.");
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
 		if (playerInfo == null){
@@ -1403,7 +1460,7 @@ public class MarketListener implements Listener{
 				HashSet<Location> locations = new HashSet<Location>();
 				locations.add(event.getClickedBlock().getLocation());
 				
-				Market m = new Market(player.getName(), playerInfo.marketName, locations, plugin);
+				Market m = new Market(player.getName(), playerInfo.marketName, locations, new HashMap<String, Integer>(), plugin);
 				GUIM.marketNames.put(m.getFullName(), m);
 				GUIM.marketLocations.put(event.getClickedBlock().getLocation(), m);
 				playerInfo.creatingMarket = false;

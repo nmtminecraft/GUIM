@@ -289,6 +289,11 @@ public class MenuPainter {
 			return;
 		}
 		
+		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
+		if (market == null){
+			player.sendMessage("An error occured. Could not find market");
+		}
+		
 		String[] parts = menu.split(":");
 		
 		switch (parts[0]){
