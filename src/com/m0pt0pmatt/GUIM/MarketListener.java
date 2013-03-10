@@ -282,6 +282,12 @@ public class MarketListener implements Listener{
 			//notify the player
 			player.sendMessage("Admin Menu");
 		}
+		
+		//if help button was pressed
+		else if (event.getSlot() == MenuPainter.getLeft(inv, 5)){
+			HelpBookCreator.mainMenuHelp(player);
+			return;
+		}
 	}
 		
 	/**
@@ -388,6 +394,20 @@ public class MarketListener implements Listener{
 			// paint the sell menu
 			MenuPainter.paintMenu(player);
 			return;
+		}
+		
+		//if help button was pressed
+		else if (event.getSlot() == MenuPainter.getLeft(inv, 3)){
+			//which menu
+			if (playerInfo.menu.equals("market:view")){
+				HelpBookCreator.viewMarketHelp(player);
+			}
+			else if (playerInfo.menu.equals("request:view")){
+				HelpBookCreator.viewRequestHelp(player);
+			}
+			
+			return;
+			
 		}
 
 		// if another item was pressed that wasn't air
@@ -515,6 +535,18 @@ public class MarketListener implements Listener{
 				MenuPainter.paintMenu(player);
 				return;
 			}
+		}
+		
+		if (event.getSlot() == MenuPainter.getLeft(inv, 3)){
+			//which menu
+			if (playerInfo.menu.split(":")[0].equals("market")){
+				HelpBookCreator.buyHelp(player);
+			}
+			else if (playerInfo.menu.split(":")[0].equals("request")){
+				HelpBookCreator.fulfillHelp(player);
+			}
+			return;
+			
 		}
 
 		// buy button was pressed
@@ -654,6 +686,12 @@ public class MarketListener implements Listener{
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
 		Inventory inv = event.getInventory();
 		MarketSale marketSale = playerInfo.temp;
+		
+		if (event.getSlot() == MenuPainter.getLeft(inv, 3)){
+			//which menu
+			HelpBookCreator.sellHelp(player);
+			return;
+		}
 		
 		//choose the correct stage (3 stages)
 		switch (playerInfo.menu.split(":")[2]){

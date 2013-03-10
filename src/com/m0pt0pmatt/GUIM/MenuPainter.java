@@ -45,6 +45,7 @@ public class MenuPainter {
 		inv.setItem(getLeft(inv, 2), nameItem(getButton(3), "Free Items"));
 		inv.setItem(getLeft(inv, 3), nameItem(getButton(4), "Options"));
 		inv.setItem(getLeft(inv, 4), nameItem(getButton(5), "Admin Menu"));
+		inv.setItem(getLeft(inv, 5), nameItem(getButton(11), "Help"));
 	}
 	
 	private static void paintViewItemMenu(Player player) {
@@ -60,6 +61,7 @@ public class MenuPainter {
 		inv.setItem(getLeft(inv, 0), nameItem(getButton(1), "Scroll Left"));
 		inv.setItem(getRight(inv, 0), nameItem(getButton(1), "Scroll Right"));
 		inv.setItem(getRight(inv, 2), nameItem(getButton(6), "Back"));
+		inv.setItem(getLeft(inv, 3), nameItem(getButton(11), "Help"));
 
 		// get which list of items ans setup custom buttons
 		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
@@ -107,7 +109,7 @@ public class MenuPainter {
 
 		// add back button
 		inv.setItem(getRight(inv, 0), nameItem(getButton(2), "Go Back"));
-		
+		inv.setItem(getLeft(inv, 3), nameItem(getButton(11), "Help"));
 		//add price button
 		inv.setItem(getRight(inv, 36), nameItem(getButton(8), "Sale is $" + playerInfo.temp.getUnitPrice() + " per unit"));
 		inv.setItem(getRight(inv, 37), nameItem(getButton(8), playerInfo.temp.getAvailiableUnits() + " bulks left"));
@@ -187,6 +189,7 @@ public class MenuPainter {
 		// add menu buttons
 		// add buy button
 		inv.setItem(getRight(inv, 1), nameItem(getButton(5), "Go Forward"));
+		inv.setItem(getLeft(inv, 3), nameItem(getButton(11), "Help"));
 
 		// add back button
 		inv.setItem(getRight(inv, 0), nameItem(getButton(2), "Go Back"));
