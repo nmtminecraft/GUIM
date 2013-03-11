@@ -391,12 +391,13 @@ public class GUIM extends JavaPlugin{
 		String menu;
 		for (PlayerInfo pInfo: playerInfo.values()){
 			menu = pInfo.menu;
-			if (menu.equals(whichMenu)){
-				//players menu needs to be updated
-				MenuPainter.paintMenu(Bukkit.getPlayer(pInfo.name));
+			if (menu != null){
+				if (menu.equals(whichMenu)){
+					//players menu needs to be updated
+					MenuPainter.paintMenu(Bukkit.getPlayer(pInfo.name));
+				}
 			}
 		}
-		
 	}
 	
 }

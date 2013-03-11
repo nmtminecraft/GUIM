@@ -1168,6 +1168,12 @@ public class MarketListener implements Listener{
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
 		MarketSale marketSale = playerInfo.temp;	
 		
+		//check if there is anything to fulfill
+		if (marketSale.getAvailiableUnits() <= 0){
+			player.sendMessage("This request is complete");
+			return false;
+		}
+		
 		//check if player has items
 		if (!playerhasItems(player, marketSale, playerInfo.unitQuantity)){
 			player.sendMessage("You do not have the items in your inventory.");
