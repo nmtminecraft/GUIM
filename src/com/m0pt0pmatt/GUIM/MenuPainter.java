@@ -286,7 +286,13 @@ public class MenuPainter {
 	 * @param player
 	 */
 	public static void paintMenu(Player player) {
+		if (player == null){
+			return;
+		}
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
+		if (playerInfo == null){
+			return;
+		}
 		String menu = playerInfo.menu;
 		if (menu == null){
 			return;
