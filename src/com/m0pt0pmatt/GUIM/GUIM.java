@@ -12,7 +12,6 @@ import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.MemorySection;
@@ -204,6 +203,10 @@ public class GUIM extends JavaPlugin{
 		marketLocations.clear();
 		getLogger().info("Old markets are cleaned");
 		
+		if (!this.getDataFolder().exists()){
+			this.getDataFolder().mkdir();
+		}
+		
 		//get all the names of the markets
 		for (File file: this.getDataFolder().listFiles()){
 			if (!file.getName().equals("config.yml")){
@@ -296,13 +299,9 @@ public class GUIM extends JavaPlugin{
 	
 	private ArrayList<MarketSale> getSales(FileConfiguration config, String whichList){
 		MemorySection memory = (MemorySection) config.get(whichList);
-		ArrayList<MarketSale> sales = new ArrayList<MarketSale>();
-		
-		System.out.println("Attempting to get the " + whichList);
-		
+		ArrayList<MarketSale> sales = new ArrayList<MarketSale>();		
 		
 		for (String index: memory.getKeys(false)){
-			System.out.println("current sale key: " + index);
 			
 			LinkedList<ItemStack> items = new LinkedList<ItemStack>();
 			
@@ -312,15 +311,12 @@ public class GUIM extends JavaPlugin{
 			
 			//add the properties to the new map
 			for (String s: saleProperties){
-				System.out.println("current sale property: " + s);
 				
 			    if (s.equals("items")){
 			    	
 			    	Set<String> itemKeys = ((MemorySection) memory.get(index + ".items")).getKeys(false);
 			    	for (String itemKey: itemKeys){
-			    		
-			    		System.out.println("current item: " + itemKey);
-			    		
+			    					    		
 			    		//get the properties
 						Set<String> itemProperties = ((MemorySection) memory.get(index + ".items." + itemKey)).getKeys(false);
 						
@@ -329,9 +325,7 @@ public class GUIM extends JavaPlugin{
 						
 						//add the properties to the new map
 						for (String property: itemProperties){
-							
-							System.out.println("current item property: " + property);
-							
+														
 							//fix for enchantments
 							if (property.equals("enchantments")){
 								//get all the enchantments
@@ -346,7 +340,6 @@ public class GUIM extends JavaPlugin{
 							}
 							else{
 								map.put(property, memory.get(index + ".items." + itemKey + "." + property));
-								System.out.println("Added " + property + ": "+ memory.get(index + ".items." + itemKey + "." + property));
 							}
 							
 						}
