@@ -1,5 +1,6 @@
 package com.m0pt0pmatt.GUIM;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -25,7 +27,8 @@ public class Market{
 	public ArrayList<MarketSale> freeItems;
 	public ArrayList<MarketSale> requestedItems;
 	
-	private ConfigManager configuration;
+	private YamlConfiguration configuration;
+	private String configFilename;
 	
 	private Set<Location> accessBlocks;
 	private String name = null;
@@ -50,11 +53,7 @@ public class Market{
 		//set access block
 		this.accessBlocks = new HashSet<Location>();
 		this.accessBlocks = accessBlocks;
-		
-		this.configuration = new ConfigManager(plugin, (owner + "--" + name + ".yml"));
-		
-		//load the market from file
-		load();
+		this.configFilename = owner + "--" + name + ".yml";
 		
 	}
 	
@@ -66,15 +65,14 @@ public class Market{
 	 * Save market data to file
 	 */
 	public void save(){
-		configuration.reloadConfig();
 		
 		//configuration.getFile().delete();
 		HashMap<String, Map<String, Object>> marketItems;
 		HashMap<String, Map<String, Object>> requestedItems;
 		HashMap<String, Map<String, Object>> freeItems;		
 		
-		configuration.getConfig().set("owner", owner);
-		configuration.getConfig().set("name", name);
+		configuration.set("owner", owner);
+		configuration.set("name", name);
 		
 		HashMap<String, Object> locations = new HashMap<String, Object>();
 		int i = 0;
@@ -89,7 +87,7 @@ public class Market{
 			locations.put(String.valueOf(i), lmap);
 		}
 		
-		configuration.getConfig().createSection("accessLocations", locations);
+		configuration.createSection("accessLocations", locations);
 		
 		i = 0;
 		marketItems = new HashMap<String, Map<String, Object>>();
@@ -97,7 +95,7 @@ public class Market{
 			marketItems.put(Integer.toString(i), m.serialize());
 			i++;
 		}
-		configuration.getConfig().createSection("marketItems", marketItems);
+		configuration.createSection("marketItems", marketItems);
 		
 		i = 0;
 		requestedItems = new HashMap<String, Map<String, Object>>();
@@ -105,7 +103,7 @@ public class Market{
 			requestedItems.put(Integer.toString(i), m.serialize());
 			i++;
 		}
-		configuration.getConfig().createSection("requestedItems", requestedItems);
+		configuration.createSection("requestedItems", requestedItems);
 		
 		i = 0;
 		freeItems = new HashMap<String, Map<String, Object>>();
@@ -113,24 +111,20 @@ public class Market{
 			freeItems.put(Integer.toString(i), m.serialize());
 			i++;
 		}
-		configuration.getConfig().createSection("freeItems", freeItems);
+		configuration.createSection("freeItems", freeItems);
 		
-		configuration.getConfig().createSection("currentSales", numSales);
-		configuration.saveConfig();
+		configuration.createSection("currentSales", numSales);
+		try {
+			configuration.save(configFilename);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 		System.out.println("[HomeWorldPlugin] Saved market");
 		
 	}
 
-	/**
-	 * load market data from file
-	 */
-	public void load(){
-
-	}
-
 	public String getFullName() {
-		// TODO Auto-generated method stub
 		return owner + "--" + name;
 	}
 

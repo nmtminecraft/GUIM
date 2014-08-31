@@ -17,6 +17,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -47,11 +48,6 @@ public class GUIM extends JavaPlugin{
 	private static HashMap<UUID, PlayerInfo> playerInfo;
 	
 	/**
-	 * The configuration manager for the plugin.
-	 */
-	public static ConfigManager mainConfig = null;
-	
-	/**
 	 * The thread which auto-saves files
 	 */
 	public static FileSavingThread savingThread = null;
@@ -63,10 +59,6 @@ public class GUIM extends JavaPlugin{
 	 * This is ran once the plugin is enabled. It is ran after the constructor.
 	 */
 	public void onEnable(){		
-		
-		//set up configurations
-		getLogger().info("Setting up the main config file.");
-		mainConfig = new ConfigManager(this, "config.yml");
 		
 		//create the market map
 		marketNames = new HashMap<String, Market>();
@@ -221,8 +213,7 @@ public class GUIM extends JavaPlugin{
 	}	
 	
 	private void addMarket(File file) {
-		ConfigManager cm = new ConfigManager(this, file.getName());
-		FileConfiguration config = cm.getConfig();
+		FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 		
 		//get the name and owner of the market
 		String name = (String)config.get("name");
