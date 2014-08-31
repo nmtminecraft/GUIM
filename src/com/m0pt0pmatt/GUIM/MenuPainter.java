@@ -37,7 +37,7 @@ public class MenuPainter {
 	}
 	
 	private static void paintMainMenu(Player player){
-		Inventory inv = GUIM.getPlayerInfo(player.getName()).inventory;
+		Inventory inv = GUIM.getPlayerInfo(player.getUniqueId()).inventory;
 		
 		inv.clear();
 		inv.setItem(getLeft(inv, 0), nameItem(getButton(1), "Market Items"));
@@ -50,7 +50,7 @@ public class MenuPainter {
 	
 	private static void paintViewItemMenu(Player player) {
 
-		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
+		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		Inventory inv = playerInfo.inventory;
 		
 		// clear inventory
@@ -97,7 +97,7 @@ public class MenuPainter {
 	}
 	
 	private static void paintBuyMenu(Player player) {
-		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
+		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		Inventory inv = playerInfo.inventory;
 
 		// clear inventory
@@ -151,7 +151,7 @@ public class MenuPainter {
 	}
 	
 	private static void paintConfirmMenu(Player player) {
-		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
+		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		Inventory inv = playerInfo.inventory;
 
 		// clear inventory
@@ -180,7 +180,7 @@ public class MenuPainter {
 	}
 	
 	private static void paintSellMenu(Player player) {
-		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
+		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		Inventory inv = playerInfo.inventory;
 
 		// clear inventory
@@ -202,7 +202,7 @@ public class MenuPainter {
 		
 		// add the item if it exists
 		if (playerInfo.temp == null){
-			playerInfo.temp = new MarketSale(player.getName());
+			playerInfo.temp = new MarketSale(player.getUniqueId());
 		}
 		int i = 0;
 		for (ItemStack item: playerInfo.temp.getItems()) {
@@ -251,7 +251,7 @@ public class MenuPainter {
 	
 	
 	private static void paintOptionsMenu(Player player){
-		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
+		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		Inventory inv = playerInfo.inventory;
 
 		// clear inventory
@@ -268,7 +268,7 @@ public class MenuPainter {
 	 * @param player
 	 */
 	private static void paintAdminMenu(Player player){
-		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
+		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		Inventory inv = playerInfo.inventory;
 
 		// clear inventory
@@ -289,7 +289,7 @@ public class MenuPainter {
 		if (player == null){
 			return;
 		}
-		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
+		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		if (playerInfo == null){
 			return;
 		}
@@ -359,7 +359,7 @@ public class MenuPainter {
 	}
 	
 	private static void paintTakeMenu(Player player) {
-		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getName());
+		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		Inventory inv = playerInfo.inventory;
 
 		// clear inventory

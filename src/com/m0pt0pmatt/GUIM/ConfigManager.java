@@ -27,7 +27,6 @@ package com.m0pt0pmatt.GUIM;
  */
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.logging.Level;
 
 import org.bukkit.configuration.file.FileConfiguration;
@@ -67,11 +66,6 @@ public class ConfigManager {
      * @param fileName
      */
     public ConfigManager(JavaPlugin plugin, String fileName) {
-    	//make sure plugin is initialized
-        if (plugin == null)
-            throw new IllegalArgumentException("plugin cannot be null");
-        if (!plugin.isInitialized())
-            throw new IllegalArgumentException("plugin must be initiaized");
         
         //set the plugin and the filename
         this.plugin = plugin;
@@ -94,12 +88,6 @@ public class ConfigManager {
         //get the configuration
         fileConfiguration = YamlConfiguration.loadConfiguration(configFile);
 
-        // Look for defaults in the jar
-        InputStream defConfigStream = plugin.getResource(fileName);
-        if (defConfigStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-            fileConfiguration.setDefaults(defConfig);
-        }
     }
 
     /**

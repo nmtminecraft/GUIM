@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import net.milkbowl.vault.economy.Economy;
 
@@ -43,7 +44,7 @@ public class GUIM extends JavaPlugin{
 	/**
 	 * This maps players name to the information this plugin requires of them.
 	 */
-	private static HashMap<String, PlayerInfo> playerInfo;
+	private static HashMap<UUID, PlayerInfo> playerInfo;
 	
 	/**
 	 * The configuration manager for the plugin.
@@ -72,7 +73,7 @@ public class GUIM extends JavaPlugin{
 		marketLocations = new HashMap<Location, Market>();
 			
 		//create the playerInfo map
-		playerInfo = new HashMap<String, PlayerInfo>();
+		playerInfo = new HashMap<UUID, PlayerInfo>();
 		
 		//setup economy hook
 		if (setupEconomy()){
@@ -225,7 +226,7 @@ public class GUIM extends JavaPlugin{
 		
 		//get the name and owner of the market
 		String name = (String)config.get("name");
-		String owner = (String)config.get("owner");
+		UUID owner = UUID.fromString((String)config.get("owner"));
 		String fullName = owner+"--"+name;
 		
 		//get the access locations
@@ -240,11 +241,12 @@ public class GUIM extends JavaPlugin{
 		//get the free items
 		ArrayList<MarketSale> freeItems = this.getSales(config, "freeItems");
 		
-		HashMap<String, Integer> numSales = new HashMap<String, Integer>();
+		HashMap<UUID, Integer> numSales = new HashMap<UUID, Integer>();
 		MemorySection memory = (MemorySection) config.get("currentSales");
+		
 		//for each player
 		for (String playerName: memory.getKeys(false)){
-			numSales.put(playerName, (Integer) memory.get(playerName));
+			numSales.put(UUID.fromString(playerName), (Integer) memory.get(playerName));
 		}
 		
 		//create the market
@@ -369,11 +371,11 @@ public class GUIM extends JavaPlugin{
 	}
 	
 
-	public static PlayerInfo getPlayerInfo(String playerName){
+	public static PlayerInfo getPlayerInfo(UUID playerName){
 		return playerInfo.get(playerName);
 	}
 	
-	public static void addPlayerInfo(String playerName){
+	public static void addPlayerInfo(UUID playerName){
 		playerInfo.put(playerName, new PlayerInfo(playerName));
 	}
 

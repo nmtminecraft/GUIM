@@ -3,6 +3,7 @@ package com.m0pt0pmatt.GUIM;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.inventory.ItemStack;
 
@@ -23,7 +24,7 @@ public class MarketSale {
 	/**
 	 * The seller/requester of the item(s)
 	 */
-	private String seller;
+	private UUID seller;
 	
 	/**
 	 * the price of one sale unit
@@ -52,7 +53,7 @@ public class MarketSale {
 	
 	
 	public MarketSale(){
-		this.seller = "";
+		this.seller = null;
 		this.unitPrice = 0;
 		this.numPerUnits = 1;
 		this.quantity = 1;
@@ -64,7 +65,7 @@ public class MarketSale {
 	 * Default constructor
 	 * @param seller
 	 */
-	public MarketSale(String seller){
+	public MarketSale(UUID seller){
 		this.seller = seller;
 		this.unitPrice = 0;
 		this.numPerUnits = 1;
@@ -73,7 +74,7 @@ public class MarketSale {
 		items = new LinkedList<ItemStack>();
 	}
 	
-	public MarketSale(String seller, int price, int bulk, int quantity) {
+	public MarketSale(UUID seller, int price, int bulk, int quantity) {
 		this.seller = seller;
 		this.unitPrice = price;
 		this.numPerUnits = bulk;
@@ -83,7 +84,7 @@ public class MarketSale {
 		items = new LinkedList<ItemStack>();
 	}
 	
-	public MarketSale(String seller, int price, int bulk, int quantity, LinkedList<ItemStack> items, int fulfilled, int pickedUp) {
+	public MarketSale(UUID seller, int price, int bulk, int quantity, LinkedList<ItemStack> items, int fulfilled, int pickedUp) {
 		this.seller = seller;
 		this.unitPrice = price;
 		this.numPerUnits = bulk;
@@ -97,7 +98,7 @@ public class MarketSale {
 	 * Returns the seller of the ItemStack
 	 * @return the seller of the ItemStack
 	 */
-	public String getSeller(){
+	public UUID getSeller(){
 		return seller;
 	}
 	
@@ -161,7 +162,7 @@ public class MarketSale {
 	 * Sets the seller of the ItemStack
 	 * @param seller the seller of the ItemStack to be set
 	 */
-	public void setSeller(String seller){
+	public void setSeller(UUID seller){
 		this.seller = seller;
 	}
 
@@ -226,7 +227,7 @@ public class MarketSale {
 	 */
 	@SuppressWarnings("unchecked")
 	public static MarketSale deserialize(Map<String, Object> args){
-		String seller = null;
+		UUID seller = null;
 		int price = 0;
 		int bulk = 1;
 		int quantity = 1;
@@ -235,7 +236,7 @@ public class MarketSale {
 		
 		//first, get the easy fields
 		if (args.containsKey("seller")){
-			seller = (String) args.get("seller");
+			seller = (UUID) args.get("seller");
 		}
 		
 		if (args.containsKey("price")){
@@ -261,7 +262,6 @@ public class MarketSale {
 		//now, get the itemsMap
 		LinkedList<ItemStack> items = new LinkedList<ItemStack>();
 		if (args.containsKey("items")){
-			int i = 0;
 			items = (LinkedList<ItemStack>) args.get("items");
 		}
 		

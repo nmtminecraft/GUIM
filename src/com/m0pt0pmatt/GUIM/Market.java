@@ -3,10 +3,9 @@ package com.m0pt0pmatt.GUIM;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,14 +29,14 @@ public class Market{
 	
 	private Set<Location> accessBlocks;
 	private String name = null;
-	private String owner = null;
-	public HashMap<String, Integer> numSales;
+	private UUID owner = null;
+	public Map<UUID, Integer> numSales;
 	public static int maxNumber = 10;
 
 	/**
 	 * Default Constructor
 	 */
-	public Market(String owner, String name, Set<Location> accessBlocks, HashMap<String, Integer> numSales, JavaPlugin plugin) {
+	public Market(UUID owner, String name, Set<Location> accessBlocks, Map<UUID, Integer> numSales, JavaPlugin plugin) {
 		//create internal objects
 		marketItems = new ArrayList<MarketSale>();
 		freeItems = new ArrayList<MarketSale>();
@@ -149,7 +148,7 @@ public class Market{
 		
 	}
 	
-	public int getNumSales(String playerName){
+	public int getNumSales(UUID playerName){
 		Integer num = numSales.get(playerName);
 		if (num == null){
 			return -1;
@@ -157,11 +156,11 @@ public class Market{
 		else return num;
 	}
 
-	public void addPlayer(String playerName) {
+	public void addPlayer(UUID playerName) {
 		numSales.put(playerName, 0);
 	}
 
-	public void decrementPlayer(String playerName) {
+	public void decrementPlayer(UUID playerName) {
 		int num = numSales.get(playerName);
 		num = num - 1;
 		if (num < 0){
@@ -172,7 +171,7 @@ public class Market{
 		
 	}
 	
-	public void IncrementPlayer(String playerName) {
+	public void IncrementPlayer(UUID playerName) {
 		int num = numSales.get(playerName);
 		num = num++;
 		numSales.remove(playerName);

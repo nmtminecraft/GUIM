@@ -1,5 +1,7 @@
 package com.m0pt0pmatt.GUIM;
 
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.Inventory;
@@ -36,7 +38,7 @@ public class PlayerInfo {
 	 */
 	public MarketSale temp = null;
 	
-	public String name = null;
+	public UUID name = null;
 	
 	/**
 	 * how many units a player wants to buy/sell/etc
@@ -67,7 +69,7 @@ public class PlayerInfo {
 	 * Creates a new PlayerInfo, given a player's name
 	 * @param playerName
 	 */
-	public PlayerInfo(String playerName){
+	public PlayerInfo(UUID playerName){
 		name = playerName;
 		currentMarket = null;
 		index = 0;
