@@ -92,7 +92,7 @@ public class MarketListener implements Listener{
 		player.openInventory(playerInfo.inventory);
 		
 		//notify the player of which market he or she is in
-		player.sendMessage("Market: " + market.getFullName());
+		player.sendMessage("Market: " + market.getReadableName());
 		player.sendMessage("Main Menu");
 
 	}
@@ -614,6 +614,7 @@ public class MarketListener implements Listener{
 
 			// paint the chest for the main menu
 			playerInfo.menu = playerInfo.menu.split(":")[0].concat(":view");
+			playerInfo.temp = null;
 			
 			MenuPainter.paintMenu(player);	
 			return;
@@ -1141,7 +1142,7 @@ public class MarketListener implements Listener{
 		Player seller = Bukkit.getPlayer(marketSale.getSeller());
 				
 		if (seller != null){
-			seller.sendMessage(player.getUniqueId() + " just bought " + playerInfo.unitQuantity + " units of your sale:" + marketSale.toString());
+			seller.sendMessage(player.getName() + " just bought " + playerInfo.unitQuantity + " units of your sale:" + marketSale.toString());
 			seller.sendMessage("You made $" + playerInfo.unitQuantity * marketSale.getUnitPrice());
 		}
 				

@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -24,7 +25,7 @@ public class MarketSale {
 	/**
 	 * The seller/requester of the item(s)
 	 */
-	private UUID seller;
+	private String seller;
 	
 	/**
 	 * the price of one sale unit
@@ -66,7 +67,7 @@ public class MarketSale {
 	 * @param seller
 	 */
 	public MarketSale(UUID seller){
-		this.seller = seller;
+		this.seller = seller.toString();
 		this.unitPrice = 0;
 		this.numPerUnits = 1;
 		this.quantity = 1;
@@ -75,7 +76,7 @@ public class MarketSale {
 	}
 	
 	public MarketSale(UUID seller, int price, int bulk, int quantity) {
-		this.seller = seller;
+		this.seller = seller.toString();
 		this.unitPrice = price;
 		this.numPerUnits = bulk;
 		this.quantity = quantity;
@@ -85,7 +86,7 @@ public class MarketSale {
 	}
 	
 	public MarketSale(UUID seller, int price, int bulk, int quantity, LinkedList<ItemStack> items, int fulfilled, int pickedUp) {
-		this.seller = seller;
+		this.seller = seller.toString();
 		this.unitPrice = price;
 		this.numPerUnits = bulk;
 		this.quantity = quantity;
@@ -99,7 +100,7 @@ public class MarketSale {
 	 * @return the seller of the ItemStack
 	 */
 	public UUID getSeller(){
-		return seller;
+		return UUID.fromString(seller);
 	}
 	
 	/**
@@ -163,7 +164,7 @@ public class MarketSale {
 	 * @param seller the seller of the ItemStack to be set
 	 */
 	public void setSeller(UUID seller){
-		this.seller = seller;
+		this.seller = seller.toString();
 	}
 
 	/**
@@ -188,7 +189,12 @@ public class MarketSale {
 	
 	@Override
 	public String toString(){
-		return super.toString() + " price " + this.unitPrice + " seller " + this.seller + " isBulk " + numPerUnits;		
+		return "{"
+				+ "seller " + Bukkit.getPlayer(UUID.fromString(this.seller)).getName() + ", "
+				+ "items: " + items.toString() + ", "
+				+ "price " + this.unitPrice + ", " 
+				+ "isBulk " + numPerUnits
+				+ "}";		
 	}
 	
 	/**
@@ -271,4 +277,5 @@ public class MarketSale {
 		return m;
 		
 	}
+	
 }

@@ -1,5 +1,6 @@
 package com.m0pt0pmatt.GUIM;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -27,7 +29,6 @@ public class Market{
 	public ArrayList<MarketSale> freeItems;
 	public ArrayList<MarketSale> requestedItems;
 	
-	private YamlConfiguration configuration;
 	private String configFilename;
 	
 	private Set<Location> accessBlocks;
@@ -35,6 +36,7 @@ public class Market{
 	private UUID owner = null;
 	public Map<UUID, Integer> numSales;
 	public static int maxNumber = 10;
+	private JavaPlugin plugin;
 
 	/**
 	 * Default Constructor
@@ -54,6 +56,7 @@ public class Market{
 		this.accessBlocks = new HashSet<Location>();
 		this.accessBlocks = accessBlocks;
 		this.configFilename = owner + "--" + name + ".yml";
+		this.plugin = plugin;
 		
 	}
 	
@@ -66,12 +69,14 @@ public class Market{
 	 */
 	public void save(){
 		
+		YamlConfiguration configuration = new YamlConfiguration();
+		
 		//configuration.getFile().delete();
 		HashMap<String, Map<String, Object>> marketItems;
 		HashMap<String, Map<String, Object>> requestedItems;
 		HashMap<String, Map<String, Object>> freeItems;		
 		
-		configuration.set("owner", owner);
+		configuration.set("owner", owner.toString());
 		configuration.set("name", name);
 		
 		HashMap<String, Object> locations = new HashMap<String, Object>();
@@ -115,18 +120,24 @@ public class Market{
 		
 		configuration.createSection("currentSales", numSales);
 		try {
-			configuration.save(configFilename);
+			File configFile = new File(plugin.getDataFolder(), configFilename);
+			configuration.save(configFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		System.out.println("[HomeWorldPlugin] Saved market");
+		System.out.println("[HomeWorldPlugin] Saved market to " + configFilename);
 		
 	}
 
 	public String getFullName() {
 		return owner + "--" + name;
 	}
+	
+	public String getReadableName() {
+		return Bukkit.getPlayer(owner).getName() + "--" + name;
+	}
+
 
 	public MarketSale getItem(int i, String whichList) {
 		if (whichList.equals("market")){

@@ -2,6 +2,7 @@ package com.m0pt0pmatt.GUIM;
 
 import java.util.ArrayList;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -113,7 +114,7 @@ public class MenuPainter {
 		//add price button
 		inv.setItem(getRight(inv, 36), nameItem(getButton(8), "Sale is $" + playerInfo.temp.getUnitPrice() + " per unit"));
 		inv.setItem(getRight(inv, 37), nameItem(getButton(8), playerInfo.temp.getAvailiableUnits() + " bulks left"));
-		inv.setItem(getRight(inv, 38), nameItem(getButton(8), "Seller: " + playerInfo.temp.getSeller()));
+		inv.setItem(getRight(inv, 38), nameItem(getButton(8), "Seller: " + Bukkit.getPlayer(playerInfo.temp.getSeller()).getName()));
 		
 		// add items
 		int i = 0;

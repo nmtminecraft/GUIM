@@ -206,7 +206,7 @@ public class GUIM extends JavaPlugin{
 		
 		//get the name and owner of the market
 		String name = (String)config.get("name");
-		UUID owner = UUID.fromString((String)config.get("owner"));
+		UUID owner = UUID.fromString(config.getString("owner"));
 		String fullName = owner+"--"+name;
 		
 		//get the access locations
