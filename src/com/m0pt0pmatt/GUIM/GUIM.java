@@ -47,11 +47,6 @@ public class GUIM extends JavaPlugin{
 	 */
 	private static HashMap<UUID, PlayerInfo> playerInfo;
 	
-	/**
-	 * The thread which auto-saves files
-	 */
-	public static FileSavingThread savingThread = null;
-	
 	public static MarketListener marketListener = null;
 	
 	
@@ -74,15 +69,9 @@ public class GUIM extends JavaPlugin{
 		else{
 			getLogger().warning("Vault Economy could not be found. Will try again later on a need basis.");
 		}
-		
-		
+				
 		//load the markets
 		load();
-		
-		//set up the thread that saves data
-		savingThread = new FileSavingThread(this);
-		savingThread.start();
-		getLogger().info("Second Thread for saving files has been started.");
 		
 		//registers the market listener
 		marketListener = new MarketListener(this);
