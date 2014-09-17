@@ -242,7 +242,7 @@ public class MarketSale {
 		
 		//first, get the easy fields
 		if (args.containsKey("seller")){
-			seller = (UUID) args.get("seller");
+			seller = UUID.fromString((String) args.get("seller")) ;
 		}
 		
 		if (args.containsKey("price")){

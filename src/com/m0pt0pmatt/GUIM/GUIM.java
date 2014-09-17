@@ -126,6 +126,9 @@ public class GUIM extends JavaPlugin{
 			}
 			else if (args.length == 2){
 				if (args[0].equals("create")){
+					System.out.println(marketListener);
+					System.out.println(sender);
+					System.out.println(args[1]);
 					marketListener.setupMarket((Player) sender, args[1]);
 					return true;
 				}
