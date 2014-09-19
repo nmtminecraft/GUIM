@@ -1138,12 +1138,15 @@ public class MarketListener implements Listener{
 		addItems(player, marketSale, playerInfo.unitQuantity);
 
 		//give the seller the money
-		GUIM.economy.depositPlayer(Bukkit.getPlayer(marketSale.getSeller()), playerInfo.unitQuantity * marketSale.getUnitPrice());
-		Player seller = Bukkit.getPlayer(marketSale.getSeller());
+		GUIM.economy.depositPlayer(Bukkit.getOfflinePlayer(marketSale.getSeller()), playerInfo.unitQuantity * marketSale.getUnitPrice());
+		OfflinePlayer seller = Bukkit.getOfflinePlayer(marketSale.getSeller());
 				
-		if (seller != null){
-			seller.sendMessage(player.getName() + " just bought " + playerInfo.unitQuantity + " units of your sale:" + marketSale.toString());
-			seller.sendMessage("You made $" + playerInfo.unitQuantity * marketSale.getUnitPrice());
+		if (seller.isOnline()){
+			
+			Player onlineSeller = Bukkit.getPlayer(marketSale.getSeller());
+			
+			onlineSeller.sendMessage(player.getName() + " just bought " + playerInfo.unitQuantity + " units of your sale:" + marketSale.toString());
+			onlineSeller.sendMessage("You made $" + playerInfo.unitQuantity * marketSale.getUnitPrice());
 		}
 				
 		//withdraw money from the purchaser

@@ -190,7 +190,7 @@ public class MarketSale {
 	@Override
 	public String toString(){
 		return "{"
-				+ "seller " + Bukkit.getPlayer(UUID.fromString(this.seller)).getName() + ", "
+				+ "seller " + Bukkit.getOfflinePlayer(UUID.fromString(this.seller)).getName() + ", "
 				+ "items: " + items.toString() + ", "
 				+ "price " + this.unitPrice + ", " 
 				+ "isBulk " + numPerUnits
