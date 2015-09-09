@@ -56,7 +56,7 @@ public class MarketSale {
 	
 	
 	public MarketSale(){
-		this.seller = "";
+		this.seller = null;
 		this.unitPrice = 0;
 		this.numPerUnits = 1;
 		this.quantity = 1;
@@ -68,8 +68,8 @@ public class MarketSale {
 	 * Default constructor
 	 * @param seller
 	 */
-	public MarketSale(String seller){
-		this.seller = seller;
+	public MarketSale(UUID seller){
+		this.seller = seller.toString();
 		this.unitPrice = 0;
 		this.numPerUnits = 1;
 		this.quantity = 1;
@@ -77,8 +77,8 @@ public class MarketSale {
 		items = new LinkedList<ItemStack>();
 	}
 	
-	public MarketSale(String seller, int price, int bulk, int quantity) {
-		this.seller = seller;
+	public MarketSale(UUID seller, int price, int bulk, int quantity) {
+		this.seller = seller.toString();
 		this.unitPrice = price;
 		this.numPerUnits = bulk;
 		this.quantity = quantity;
@@ -87,8 +87,8 @@ public class MarketSale {
 		items = new LinkedList<ItemStack>();
 	}
 	
-	public MarketSale(String seller, int price, int bulk, int quantity, LinkedList<ItemStack> items, int fulfilled, int pickedUp) {
-		this.seller = seller;
+	public MarketSale(UUID seller, int price, int bulk, int quantity, LinkedList<ItemStack> items, int fulfilled, int pickedUp) {
+		this.seller = seller.toString();
 		this.unitPrice = price;
 		this.numPerUnits = bulk;
 		this.quantity = quantity;
@@ -101,18 +101,20 @@ public class MarketSale {
 	 * Returns the seller of the ItemStack
 	 * @return the seller of the ItemStack
 	 */
-	public String getSeller(){
-		OfflinePlayer p;
-		try {
-			p = Bukkit.getOfflinePlayer(UUID.fromString(seller));
-		} catch (IllegalArgumentException e) {
-			p = null;
-		}
-		if (p != null) {
-			this.seller = p.getName();
-		}
-		
-		return seller;
+//	public String getSeller(){
+//		OfflinePlayer p;
+//		try {
+//			p = Bukkit.getOfflinePlayer(UUID.fromString(seller));
+//		} catch (IllegalArgumentException e) {
+//			p = null;
+//		}
+//		if (p != null) {
+//			this.seller = p.getName();
+//		}
+//		
+//		return seller;
+	public UUID getSeller(){
+		return UUID.fromString(seller);
 	}
 	
 	/**
@@ -175,8 +177,8 @@ public class MarketSale {
 	 * Sets the seller of the ItemStack
 	 * @param seller the seller of the ItemStack to be set
 	 */
-	public void setSeller(String seller){
-		this.seller = seller;
+	public void setSeller(UUID seller){
+		this.seller = seller.toString();
 	}
 
 	/**
@@ -220,7 +222,13 @@ public class MarketSale {
 		}
 		
 		return itemDescription + "\nPrice: " + ChatColor.DARK_RED + this.unitPrice 
-				+ ChatColor.RESET + "\nSeller: " + this.seller;		
+				+ ChatColor.RESET + "\nSeller: " + this.seller;	
+//		return "{"
+//				+ "seller " + Bukkit.getOfflinePlayer(UUID.fromString(this.seller)).getName() + ", "
+//				+ "items: " + items.toString() + ", "
+//				+ "price " + this.unitPrice + ", " 
+//				+ "isBulk " + numPerUnits
+//				+ "}";		
 	}
 	
 	/**
@@ -259,7 +267,7 @@ public class MarketSale {
 	 */
 	@SuppressWarnings("unchecked")
 	public static MarketSale deserialize(Map<String, Object> args){
-		String seller = null;
+		UUID seller = null;
 		int price = 0;
 		int bulk = 1;
 		int quantity = 1;
@@ -268,7 +276,7 @@ public class MarketSale {
 		
 		//first, get the easy fields
 		if (args.containsKey("seller")){
-			seller = (String) args.get("seller");
+			seller = UUID.fromString((String) args.get("seller")) ;
 		}
 		
 		if (args.containsKey("price")){
@@ -294,7 +302,6 @@ public class MarketSale {
 		//now, get the itemsMap
 		LinkedList<ItemStack> items = new LinkedList<ItemStack>();
 		if (args.containsKey("items")){
-			int i = 0;
 			items = (LinkedList<ItemStack>) args.get("items");
 		}
 		
@@ -304,4 +311,5 @@ public class MarketSale {
 		return m;
 		
 	}
+	
 }

@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -14,6 +15,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -43,17 +45,7 @@ public class GUIM extends JavaPlugin{
 	/**
 	 * This maps players name to the information this plugin requires of them.
 	 */
-	private static HashMap<String, PlayerInfo> playerInfo;
-	
-	/**
-	 * The configuration manager for the plugin.
-	 */
-	public static ConfigManager mainConfig = null;
-	
-	/**
-	 * The thread which auto-saves files
-	 */
-	public static FileSavingThread savingThread = null;
+	private static HashMap<UUID, PlayerInfo> playerInfo;
 	
 	public static MarketListener marketListener = null;
 	
@@ -63,16 +55,12 @@ public class GUIM extends JavaPlugin{
 	 */
 	public void onEnable(){		
 		
-		//set up configurations
-		getLogger().info("Setting up the main config file.");
-		mainConfig = new ConfigManager(this, "config.yml");
-		
 		//create the market map
 		marketNames = new HashMap<String, Market>();
 		marketLocations = new HashMap<Location, Market>();
 			
 		//create the playerInfo map
-		playerInfo = new HashMap<String, PlayerInfo>();
+		playerInfo = new HashMap<UUID, PlayerInfo>();
 		
 		//setup economy hook
 		if (setupEconomy()){
@@ -81,15 +69,9 @@ public class GUIM extends JavaPlugin{
 		else{
 			getLogger().warning("Vault Economy could not be found. Will try again later on a need basis.");
 		}
-		
-		
+				
 		//load the markets
 		load();
-		
-		//set up the thread that saves data
-		savingThread = new FileSavingThread(this);
-		savingThread.start();
-		getLogger().info("Second Thread for saving files has been started.");
 		
 		//registers the market listener
 		marketListener = new MarketListener(this);
@@ -144,6 +126,9 @@ public class GUIM extends JavaPlugin{
 			}
 			else if (args.length == 2){
 				if (args[0].equals("create")){
+					System.out.println(marketListener);
+					System.out.println(sender);
+					System.out.println(args[1]);
 					marketListener.setupMarket((Player) sender, args[1]);
 					return true;
 				}
@@ -220,12 +205,11 @@ public class GUIM extends JavaPlugin{
 	}	
 	
 	private void addMarket(File file) {
-		ConfigManager cm = new ConfigManager(this, file.getName());
-		FileConfiguration config = cm.getConfig();
+		FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 		
 		//get the name and owner of the market
 		String name = (String)config.get("name");
-		String owner = (String)config.get("owner");
+		UUID owner = UUID.fromString(config.getString("owner"));
 		String fullName = owner+"--"+name;
 		
 		//get the access locations
@@ -240,11 +224,12 @@ public class GUIM extends JavaPlugin{
 		//get the free items
 		ArrayList<MarketSale> freeItems = this.getSales(config, "freeItems");
 		
-		HashMap<String, Integer> numSales = new HashMap<String, Integer>();
+		HashMap<UUID, Integer> numSales = new HashMap<UUID, Integer>();
 		MemorySection memory = (MemorySection) config.get("currentSales");
+		
 		//for each player
 		for (String playerName: memory.getKeys(false)){
-			numSales.put(playerName, (Integer) memory.get(playerName));
+			numSales.put(UUID.fromString(playerName), (Integer) memory.get(playerName));
 		}
 		
 		//create the market
@@ -369,11 +354,11 @@ public class GUIM extends JavaPlugin{
 	}
 	
 
-	public static PlayerInfo getPlayerInfo(String playerName){
+	public static PlayerInfo getPlayerInfo(UUID playerName){
 		return playerInfo.get(playerName);
 	}
 	
-	public static void addPlayerInfo(String playerName){
+	public static void addPlayerInfo(UUID playerName){
 		playerInfo.put(playerName, new PlayerInfo(playerName));
 	}
 

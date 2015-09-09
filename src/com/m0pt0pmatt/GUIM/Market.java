@@ -1,14 +1,17 @@
 package com.m0pt0pmatt.GUIM;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -26,18 +29,19 @@ public class Market{
 	public ArrayList<MarketSale> freeItems;
 	public ArrayList<MarketSale> requestedItems;
 	
-	private ConfigManager configuration;
+	private String configFilename;
 	
 	private Set<Location> accessBlocks;
 	private String name = null;
-	private String owner = null;
-	public HashMap<String, Integer> numSales;
+	private UUID owner = null;
+	public Map<UUID, Integer> numSales;
 	public static int maxNumber = 10;
+	private JavaPlugin plugin;
 
 	/**
 	 * Default Constructor
 	 */
-	public Market(String owner, String name, Set<Location> accessBlocks, HashMap<String, Integer> numSales, JavaPlugin plugin) {
+	public Market(UUID owner, String name, Set<Location> accessBlocks, Map<UUID, Integer> numSales, JavaPlugin plugin) {
 		//create internal objects
 		marketItems = new ArrayList<MarketSale>();
 		freeItems = new ArrayList<MarketSale>();
@@ -51,11 +55,8 @@ public class Market{
 		//set access block
 		this.accessBlocks = new HashSet<Location>();
 		this.accessBlocks = accessBlocks;
-		
-		this.configuration = new ConfigManager(plugin, (owner + "--" + name + ".yml"));
-		
-		//load the market from file
-		load();
+		this.configFilename = owner + "--" + name + ".yml";
+		this.plugin = plugin;
 		
 	}
 	
@@ -67,15 +68,16 @@ public class Market{
 	 * Save market data to file
 	 */
 	public void save(){
-		configuration.reloadConfig();
+		
+		YamlConfiguration configuration = new YamlConfiguration();
 		
 		//configuration.getFile().delete();
 		HashMap<String, Map<String, Object>> marketItems;
 		HashMap<String, Map<String, Object>> requestedItems;
 		HashMap<String, Map<String, Object>> freeItems;		
 		
-		configuration.getConfig().set("owner", owner);
-		configuration.getConfig().set("name", name);
+		configuration.set("owner", owner.toString());
+		configuration.set("name", name);
 		
 		HashMap<String, Object> locations = new HashMap<String, Object>();
 		int i = 0;
@@ -90,7 +92,7 @@ public class Market{
 			locations.put(String.valueOf(i), lmap);
 		}
 		
-		configuration.getConfig().createSection("accessLocations", locations);
+		configuration.createSection("accessLocations", locations);
 		
 		i = 0;
 		marketItems = new HashMap<String, Map<String, Object>>();
@@ -98,7 +100,7 @@ public class Market{
 			marketItems.put(Integer.toString(i), m.serialize());
 			i++;
 		}
-		configuration.getConfig().createSection("marketItems", marketItems);
+		configuration.createSection("marketItems", marketItems);
 		
 		i = 0;
 		requestedItems = new HashMap<String, Map<String, Object>>();
@@ -106,7 +108,7 @@ public class Market{
 			requestedItems.put(Integer.toString(i), m.serialize());
 			i++;
 		}
-		configuration.getConfig().createSection("requestedItems", requestedItems);
+		configuration.createSection("requestedItems", requestedItems);
 		
 		i = 0;
 		freeItems = new HashMap<String, Map<String, Object>>();
@@ -114,26 +116,28 @@ public class Market{
 			freeItems.put(Integer.toString(i), m.serialize());
 			i++;
 		}
-		configuration.getConfig().createSection("freeItems", freeItems);
+		configuration.createSection("freeItems", freeItems);
 		
-		configuration.getConfig().createSection("currentSales", numSales);
-		configuration.saveConfig();
+		configuration.createSection("currentSales", numSales);
+		try {
+			File configFile = new File(plugin.getDataFolder(), configFilename);
+			configuration.save(configFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
-		System.out.println("[HomeWorldPlugin] Saved market");
+		System.out.println("[HomeWorldPlugin] Saved market to " + configFilename);
 		
-	}
-
-	/**
-	 * load market data from file
-	 */
-	public void load(){
-
 	}
 
 	public String getFullName() {
-		// TODO Auto-generated method stub
 		return owner + "--" + name;
 	}
+	
+	public String getReadableName() {
+		return Bukkit.getPlayer(owner).getName() + "--" + name;
+	}
+
 
 	public MarketSale getItem(int i, String whichList) {
 		if (whichList.equals("market")){
@@ -149,7 +153,7 @@ public class Market{
 		
 	}
 	
-	public int getNumSales(String playerName){
+	public int getNumSales(UUID playerName){
 		Integer num = numSales.get(playerName);
 		if (num == null){
 			return -1;
@@ -157,11 +161,11 @@ public class Market{
 		else return num;
 	}
 
-	public void addPlayer(String playerName) {
+	public void addPlayer(UUID playerName) {
 		numSales.put(playerName, 0);
 	}
 
-	public void decrementPlayer(String playerName) {
+	public void decrementPlayer(UUID playerName) {
 		int num = numSales.get(playerName);
 		num = num - 1;
 		if (num < 0){
@@ -172,7 +176,7 @@ public class Market{
 		
 	}
 	
-	public void IncrementPlayer(String playerName) {
+	public void IncrementPlayer(UUID playerName) {
 		int num = numSales.get(playerName);
 		num = num++;
 		numSales.remove(playerName);
