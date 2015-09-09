@@ -8,8 +8,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-import net.milkbowl.vault.economy.Economy;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -18,8 +16,10 @@ import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.m0pt0pmatt.bettereconomy.BetterEconomy;
+import com.m0pt0pmatt.bettereconomy.EconomyManager;
 
 
 /**
@@ -32,7 +32,7 @@ public class GUIM extends JavaPlugin{
 	/**
 	 * hook for the economy
 	 */
-	public static Economy economy = null;
+	public static EconomyManager economy = null;
 	
 	/**
 	 * A mapping of all markets
@@ -167,12 +167,12 @@ public class GUIM extends JavaPlugin{
 	 */
 	public static boolean setupEconomy()
     {
-        RegisteredServiceProvider<Economy> economyProvider = Bukkit.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
-        if (economyProvider != null) {
-            economy = economyProvider.getProvider();
+        if (Bukkit.getPluginManager().isPluginEnabled("BetterEconomy")) {
+            economy = BetterEconomy.economy;
+            return true;
         }
 
-        return (economy != null);
+        return (false);
     }
 	
 	/**

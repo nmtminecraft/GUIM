@@ -3,7 +3,11 @@ package com.m0pt0pmatt.GUIM;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.UUID;
 
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -98,6 +102,16 @@ public class MarketSale {
 	 * @return the seller of the ItemStack
 	 */
 	public String getSeller(){
+		OfflinePlayer p;
+		try {
+			p = Bukkit.getOfflinePlayer(UUID.fromString(seller));
+		} catch (IllegalArgumentException e) {
+			p = null;
+		}
+		if (p != null) {
+			this.seller = p.getName();
+		}
+		
 		return seller;
 	}
 	
@@ -187,7 +201,26 @@ public class MarketSale {
 	
 	@Override
 	public String toString(){
-		return super.toString() + " price " + this.unitPrice + " seller " + this.seller + " isBulk " + numPerUnits;		
+		String itemDescription = "\n" + ChatColor.GREEN;
+		if (items != null && items.size() == 1) {
+			itemDescription += items.get(0).getType().toString();
+		} else {
+			itemDescription += "Item Package";
+		}
+		
+		itemDescription += ChatColor.RESET;
+		OfflinePlayer p;
+		try {
+			p = Bukkit.getOfflinePlayer(UUID.fromString(seller));
+		} catch (IllegalArgumentException E) {
+			p = null;
+		}
+		if (p != null) {
+			this.seller = p.getName();
+		}
+		
+		return itemDescription + "\nPrice: " + ChatColor.DARK_RED + this.unitPrice 
+				+ ChatColor.RESET + "\nSeller: " + this.seller;		
 	}
 	
 	/**
