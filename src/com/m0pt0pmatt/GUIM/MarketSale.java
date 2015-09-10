@@ -276,7 +276,16 @@ public class MarketSale {
 		
 		//first, get the easy fields
 		if (args.containsKey("seller")){
-			seller = UUID.fromString((String) args.get("seller")) ;
+			try {
+				seller = UUID.fromString((String) args.get("seller"));
+			} catch (IllegalArgumentException e) {
+				OfflinePlayer p = Bukkit.getOfflinePlayer((String) args.get("seller"));
+				if (p != null) {
+					seller = p.getUniqueId();
+				} else {
+					Bukkit.getLogger().warning("Unable to determine player:\n" + ChatColor.RED + (String) args.get("seller") + ChatColor.RESET);
+				}
+			}
 		}
 		
 		if (args.containsKey("price")){

@@ -288,19 +288,23 @@ public class MenuPainter {
 	 */
 	public static void paintMenu(Player player) {
 		if (player == null){
+			System.out.println("1");
 			return;
 		}
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		if (playerInfo == null){
+			System.out.println("2");
 			return;
 		}
 		String menu = playerInfo.menu;
 		if (menu == null){
+			System.out.println("3");
 			return;
 		}
 		
 		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
 		if (market == null){
+			System.out.println("4");
 			return;
 		}
 		
@@ -312,7 +316,7 @@ public class MenuPainter {
 			break;
 		case "market":
 			switch (parts[1]){
-			case "view":
+			case "view": 
 				paintViewItemMenu(player);
 				break;
 			case "buy":

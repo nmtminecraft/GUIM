@@ -92,7 +92,7 @@ public class MarketListener implements Listener{
 		player.openInventory(playerInfo.inventory);
 		
 		//notify the player of which market he or she is in
-		player.sendMessage("Market: " + market.getReadableName());
+		player.sendMessage("Market: " + market.getFullName());
 		player.sendMessage("Main Menu");
 
 	}
