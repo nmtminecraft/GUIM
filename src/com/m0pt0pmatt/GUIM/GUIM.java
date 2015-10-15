@@ -24,6 +24,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.m0pt0pmatt.bettereconomy.BetterEconomy;
 import com.m0pt0pmatt.bettereconomy.EconomyManager;
+import com.m0pt0pmatt.bettereconomy.accounts.UUIDFetcher;
 
 
 /**
@@ -214,12 +215,17 @@ public class GUIM extends JavaPlugin{
 		
 		//get the name and owner of the market
 		String name = (String)config.get("name");
-		UUID owner;
+		UUID owner = null;
 		try {
 			owner = UUID.fromString(config.getString("owner"));
 		} catch (IllegalArgumentException e) {
-			owner = Bukkit.getOfflinePlayer(config.getString("owner")).getUniqueId();
+			try {
+				owner = UUIDFetcher.getUUIDOf(config.getString("owner"));
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
 		}
+		
 		String fullName = "";
 		if (owner != null) {
 			fullName += Bukkit.getOfflinePlayer(owner).getName()+" -- ";
@@ -246,7 +252,13 @@ public class GUIM extends JavaPlugin{
 			try {
 				numSales.put(UUID.fromString(playerName), (Integer) memory.get(playerName));
 			} catch (IllegalArgumentException e) {
-				OfflinePlayer p = Bukkit.getOfflinePlayer(playerName);
+				OfflinePlayer p = null;
+				try {
+					p = Bukkit.getOfflinePlayer(UUIDFetcher.getUUIDOf(playerName));
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+				
 				if (p != null) {
 					numSales.put(p.getUniqueId(), (Integer) memory.get(playerName));
 				} else {

@@ -460,7 +460,7 @@ public class MarketListener implements Listener{
 			String[] fields = page.split(",");
 			if (fields.length == 4){
 				playerInfo.temp = new MarketSale(player.getUniqueId(), Integer.parseInt(fields[3]), Integer.parseInt(fields[2]),Integer.parseInt(fields[1]));
-				playerInfo.temp.addItem(new ItemStack(Integer.parseInt(fields[0])));
+				playerInfo.temp.addItem(new ItemStack(Material.values()[Integer.parseInt(fields[0])]));
 				player.sendMessage("Request valid");
 				return true;
 			}

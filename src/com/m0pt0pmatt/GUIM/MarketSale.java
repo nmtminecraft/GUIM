@@ -10,6 +10,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 
+import com.m0pt0pmatt.bettereconomy.accounts.UUIDFetcher;
+
 /**
  * Represents a sale on a market. Could be a normal sale, free item(s), or requested item(s)
  * A MarketSale is a multiple of units, where a unit is a collection of items. This is confusing, so here's an example
@@ -279,10 +281,9 @@ public class MarketSale {
 			try {
 				seller = UUID.fromString((String) args.get("seller"));
 			} catch (IllegalArgumentException e) {
-				OfflinePlayer p = Bukkit.getOfflinePlayer((String) args.get("seller"));
-				if (p != null) {
-					seller = p.getUniqueId();
-				} else {
+				try {
+					seller = UUIDFetcher.getUUIDOf((String) args.get("seller"));
+				} catch (Exception e2) {
 					Bukkit.getLogger().warning("Unable to determine player:\n" + ChatColor.RED + (String) args.get("seller") + ChatColor.RESET);
 				}
 			}
