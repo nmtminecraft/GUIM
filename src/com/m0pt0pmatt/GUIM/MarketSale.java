@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -99,6 +101,18 @@ public class MarketSale {
 	 * Returns the seller of the ItemStack
 	 * @return the seller of the ItemStack
 	 */
+//	public String getSeller(){
+//		OfflinePlayer p;
+//		try {
+//			p = Bukkit.getOfflinePlayer(UUID.fromString(seller));
+//		} catch (IllegalArgumentException e) {
+//			p = null;
+//		}
+//		if (p != null) {
+//			this.seller = p.getName();
+//		}
+//		
+//		return seller;
 	public UUID getSeller(){
 		return UUID.fromString(seller);
 	}
@@ -189,12 +203,32 @@ public class MarketSale {
 	
 	@Override
 	public String toString(){
-		return "{"
-				+ "seller " + Bukkit.getOfflinePlayer(UUID.fromString(this.seller)).getName() + ", "
-				+ "items: " + items.toString() + ", "
-				+ "price " + this.unitPrice + ", " 
-				+ "isBulk " + numPerUnits
-				+ "}";		
+		String itemDescription = "\n" + ChatColor.GREEN;
+		if (items != null && items.size() == 1) {
+			itemDescription += items.get(0).getType().toString();
+		} else {
+			itemDescription += "Item Package";
+		}
+		
+		itemDescription += ChatColor.RESET;
+		OfflinePlayer p;
+		try {
+			p = Bukkit.getOfflinePlayer(UUID.fromString(seller));
+		} catch (IllegalArgumentException E) {
+			p = null;
+		}
+		if (p != null) {
+			this.seller = p.getName();
+		}
+		
+		return itemDescription + "\nPrice: " + ChatColor.DARK_RED + this.unitPrice 
+				+ ChatColor.RESET + "\nSeller: " + this.seller;	
+//		return "{"
+//				+ "seller " + Bukkit.getOfflinePlayer(UUID.fromString(this.seller)).getName() + ", "
+//				+ "items: " + items.toString() + ", "
+//				+ "price " + this.unitPrice + ", " 
+//				+ "isBulk " + numPerUnits
+//				+ "}";		
 	}
 	
 	/**
@@ -242,7 +276,16 @@ public class MarketSale {
 		
 		//first, get the easy fields
 		if (args.containsKey("seller")){
-			seller = UUID.fromString((String) args.get("seller")) ;
+			try {
+				seller = UUID.fromString((String) args.get("seller"));
+			} catch (IllegalArgumentException e) {
+				OfflinePlayer p = Bukkit.getOfflinePlayer((String) args.get("seller"));
+				if (p != null) {
+					seller = p.getUniqueId();
+				} else {
+					Bukkit.getLogger().warning("Unable to determine player:\n" + ChatColor.RED + (String) args.get("seller") + ChatColor.RESET);
+				}
+			}
 		}
 		
 		if (args.containsKey("price")){

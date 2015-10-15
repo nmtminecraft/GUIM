@@ -9,10 +9,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import net.milkbowl.vault.economy.Economy;
-
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.MemorySection;
@@ -20,8 +20,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.m0pt0pmatt.bettereconomy.BetterEconomy;
+import com.m0pt0pmatt.bettereconomy.EconomyManager;
 
 
 /**
@@ -34,7 +36,7 @@ public class GUIM extends JavaPlugin{
 	/**
 	 * hook for the economy
 	 */
-	public static Economy economy = null;
+	public static EconomyManager economy = null;
 	
 	/**
 	 * A mapping of all markets
@@ -119,6 +121,9 @@ public class GUIM extends JavaPlugin{
 				if (args[0].equals("help")){
 					//display help
 					return true;
+				} else if (args[0].equals("reload")) {
+					onReload();
+					return true;
 				}
 				else{
 					return false;
@@ -152,12 +157,12 @@ public class GUIM extends JavaPlugin{
 	 */
 	public static boolean setupEconomy()
     {
-        RegisteredServiceProvider<Economy> economyProvider = Bukkit.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
-        if (economyProvider != null) {
-            economy = economyProvider.getProvider();
+        if (Bukkit.getPluginManager().isPluginEnabled("BetterEconomy")) {
+            economy = BetterEconomy.economy;
+            return true;
         }
 
-        return (economy != null);
+        return (false);
     }
 	
 	/**
@@ -209,8 +214,17 @@ public class GUIM extends JavaPlugin{
 		
 		//get the name and owner of the market
 		String name = (String)config.get("name");
-		UUID owner = UUID.fromString(config.getString("owner"));
-		String fullName = owner+"--"+name;
+		UUID owner;
+		try {
+			owner = UUID.fromString(config.getString("owner"));
+		} catch (IllegalArgumentException e) {
+			owner = Bukkit.getOfflinePlayer(config.getString("owner")).getUniqueId();
+		}
+		String fullName = "";
+		if (owner != null) {
+			fullName += Bukkit.getOfflinePlayer(owner).getName()+" -- ";
+		}
+		fullName += name;
 		
 		//get the access locations
 		HashSet<Location> locations = this.getLocations(config);
@@ -229,7 +243,16 @@ public class GUIM extends JavaPlugin{
 		
 		//for each player
 		for (String playerName: memory.getKeys(false)){
-			numSales.put(UUID.fromString(playerName), (Integer) memory.get(playerName));
+			try {
+				numSales.put(UUID.fromString(playerName), (Integer) memory.get(playerName));
+			} catch (IllegalArgumentException e) {
+				OfflinePlayer p = Bukkit.getOfflinePlayer(playerName);
+				if (p != null) {
+					numSales.put(p.getUniqueId(), (Integer) memory.get(playerName));
+				} else {
+					getLogger().warning("Unable to determine player:\n" + ChatColor.RED + playerName + ChatColor.RESET);
+				}
+			}
 		}
 		
 		//create the market

@@ -131,7 +131,12 @@ public class Market{
 	}
 
 	public String getFullName() {
-		return owner + "--" + name;
+		String fullName = "";
+		if (owner != null) {
+			fullName += Bukkit.getOfflinePlayer(owner).getName()+" -- ";
+		}
+		fullName += name;
+		return fullName;
 	}
 	
 	public String getReadableName() {
