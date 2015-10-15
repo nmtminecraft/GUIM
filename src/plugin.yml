@@ -1,6 +1,6 @@
 name: GUIM
 main: com.m0pt0pmatt.GUIM.GUIM
-version: 0.3
+version: 0.4
 softdepend: [Vault]
 commands:
     GUIM:

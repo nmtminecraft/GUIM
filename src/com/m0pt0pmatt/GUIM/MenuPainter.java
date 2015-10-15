@@ -11,6 +11,18 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class MenuPainter {
 	
+	public static final int Cancel = 0, 
+			Accept = 1, 
+			Help = 2, 
+			Options = 3, 
+			Left = 4, 
+			Right = 5, 
+			MarketItems = 6,
+			BuyItem = 7,
+			SellOrRequest = 8, 
+			FreeItems = 9,
+			Admin = 10;
+	
 	/**
 	 * Returns a place in the inventory, right-aligned to the offset
 	 * 
@@ -41,12 +53,12 @@ public class MenuPainter {
 		Inventory inv = GUIM.getPlayerInfo(player.getUniqueId()).inventory;
 		
 		inv.clear();
-		inv.setItem(getLeft(inv, 0), nameItem(getButton(1), "Market Items"));
-		inv.setItem(getLeft(inv, 1), nameItem(getButton(2), "Requested Items"));
-		inv.setItem(getLeft(inv, 2), nameItem(getButton(3), "Free Items"));
-		inv.setItem(getLeft(inv, 3), nameItem(getButton(4), "Options"));
-		inv.setItem(getLeft(inv, 4), nameItem(getButton(5), "Admin Menu"));
-		inv.setItem(getLeft(inv, 5), nameItem(getButton(11), "Help"));
+		inv.setItem(getLeft(inv, 0), nameItem(getButton(MarketItems), "Market Items"));
+		inv.setItem(getLeft(inv, 1), nameItem(getButton(SellOrRequest), "Requested Items"));
+		inv.setItem(getLeft(inv, 2), nameItem(getButton(FreeItems), "Free Items"));
+		inv.setItem(getLeft(inv, 3), nameItem(getButton(Options), "Options"));
+		inv.setItem(getLeft(inv, 4), nameItem(getButton(Admin), "Admin Menu"));
+		inv.setItem(getLeft(inv, 5), nameItem(getButton(Help), "Help"));
 	}
 	
 	private static void paintViewItemMenu(Player player) {
@@ -59,10 +71,10 @@ public class MenuPainter {
 
 		// add menu buttons
 		// add next buttons
-		inv.setItem(getLeft(inv, 0), nameItem(getButton(1), "Scroll Left"));
-		inv.setItem(getRight(inv, 0), nameItem(getButton(1), "Scroll Right"));
-		inv.setItem(getRight(inv, 2), nameItem(getButton(6), "Back"));
-		inv.setItem(getLeft(inv, 3), nameItem(getButton(11), "Help"));
+		inv.setItem(getLeft(inv, 0), nameItem(getButton(Left), "Scroll Left"));
+		inv.setItem(getRight(inv, 0), nameItem(getButton(Right), "Scroll Right"));
+		inv.setItem(getRight(inv, 2), nameItem(getButton(Cancel), "Back"));
+		inv.setItem(getLeft(inv, 3), nameItem(getButton(Help), "Help"));
 
 		// get which list of items ans setup custom buttons
 		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
@@ -70,14 +82,14 @@ public class MenuPainter {
 		switch(playerInfo.menu.split(":")[0]){
 		case "market":
 			items = market.marketItems;
-			inv.setItem(getRight(inv, 1), nameItem(getButton(14), "Sell Items"));
+			inv.setItem(getRight(inv, 1), nameItem(getButton(SellOrRequest), "Sell Items"));
 			break;
 		case "request":
 			items = market.requestedItems;
 			break;	
 		case "free":
 			items = market.freeItems;
-			inv.setItem(getRight(inv, 1), nameItem(getButton(14), "Add Items"));
+			inv.setItem(getRight(inv, 1), nameItem(getButton(SellOrRequest), "Add Items"));
 			break;
 		default:
 			items = market.marketItems;
@@ -106,15 +118,15 @@ public class MenuPainter {
 		
 		// add menu buttons
 		// add buy button
-		inv.setItem(getRight(inv, 1), nameItem(getButton(5), "Purchase Item(s)"));
+		inv.setItem(getRight(inv, 1), nameItem(getButton(Accept), "Purchase Item(s)"));
 
 		// add back button
-		inv.setItem(getRight(inv, 0), nameItem(getButton(2), "Go Back"));
-		inv.setItem(getLeft(inv, 3), nameItem(getButton(11), "Help"));
+		inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
+		inv.setItem(getLeft(inv, 3), nameItem(getButton(Help), "Help"));
 		//add price button
-		inv.setItem(getRight(inv, 36), nameItem(getButton(8), "Sale is $" + playerInfo.temp.getUnitPrice() + " per unit"));
-		inv.setItem(getRight(inv, 37), nameItem(getButton(8), playerInfo.temp.getAvailiableUnits() + " bulks left"));
-		inv.setItem(getRight(inv, 38), nameItem(getButton(8), "Seller: " + Bukkit.getOfflinePlayer(playerInfo.temp.getSeller()).getName()));
+		inv.setItem(getRight(inv, 36), nameItem(getButton(FreeItems), "Sale is $" + playerInfo.temp.getUnitPrice() + " per unit"));
+		inv.setItem(getRight(inv, 37), nameItem(getButton(FreeItems), playerInfo.temp.getAvailiableUnits() + " bulks left"));
+		inv.setItem(getRight(inv, 38), nameItem(getButton(FreeItems), "Seller: " + Bukkit.getOfflinePlayer(playerInfo.temp.getSeller()).getName()));
 		
 		// add items
 		int i = 0;
@@ -126,8 +138,8 @@ public class MenuPainter {
 		
 		//add increment and decrement buttons
 		for (i = 0; i < 9; i++){
-			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(3), ""));
-			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(4), ""));
+			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Right), "Increment"));
+			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Left), "Decrement"));
 		}
 
 		// add price
@@ -160,15 +172,15 @@ public class MenuPainter {
 		
 		// add menu buttons
 		// add buy button
-		inv.setItem(getRight(inv, 1), nameItem(getButton(5), "Ask for these items"));
+		inv.setItem(getRight(inv, 1), nameItem(getButton(Accept), "Ask for these items"));
 
 		// add back button
-		inv.setItem(getRight(inv, 0), nameItem(getButton(2), "Go Back"));
+		inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
 		
 		//add price button
-		inv.setItem(getRight(inv, 36), nameItem(getButton(8), "Sale is $" + playerInfo.temp.getUnitPrice() + " per unit"));
-		inv.setItem(getRight(inv, 37), nameItem(getButton(8), playerInfo.temp.getUnitQuantity() + " bulks total"));
-		inv.setItem(getRight(inv, 38), nameItem(getButton(8), "Seller: " + playerInfo.temp.getSeller()));
+		inv.setItem(getRight(inv, 36), nameItem(getButton(FreeItems), "Sale is $" + playerInfo.temp.getUnitPrice() + " per unit"));
+		inv.setItem(getRight(inv, 37), nameItem(getButton(FreeItems), playerInfo.temp.getUnitQuantity() + " bulks total"));
+		inv.setItem(getRight(inv, 38), nameItem(getButton(FreeItems), "Seller: " + playerInfo.temp.getSeller()));
 		
 		// add items
 		int i = 0;
@@ -189,16 +201,16 @@ public class MenuPainter {
 
 		// add menu buttons
 		// add buy button
-		inv.setItem(getRight(inv, 1), nameItem(getButton(5), "Go Forward"));
-		inv.setItem(getLeft(inv, 3), nameItem(getButton(11), "Help"));
+		inv.setItem(getRight(inv, 1), nameItem(getButton(Accept), "Go Forward"));
+		inv.setItem(getLeft(inv, 3), nameItem(getButton(Help), "Help"));
 
 		// add back button
-		inv.setItem(getRight(inv, 0), nameItem(getButton(2), "Go Back"));
+		inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
 
 		//add increment and decrement buttons
 		for (int i = 0; i < 9; i++){
-			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(3), ""));
-			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(4), ""));
+			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Right), "Increment"));
+			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Left), "Decrement"));
 		}
 		
 		// add the item if it exists
@@ -261,7 +273,7 @@ public class MenuPainter {
 		// add menu buttons
 
 		// add back button
-		inv.setItem(getRight(inv, 0), nameItem(getButton(2), "Go Back"));
+		inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
 	}
 	
 	/**
@@ -278,7 +290,7 @@ public class MenuPainter {
 		// add menu buttons
 
 		// add back button
-		inv.setItem(getRight(inv, 0), nameItem(getButton(2), "Go Back"));
+		inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
 	}
 
 	/**
@@ -372,14 +384,14 @@ public class MenuPainter {
 		
 		// add menu buttons
 		// add buy button
-		inv.setItem(getRight(inv, 1), nameItem(getButton(5), "Take these items"));
+		inv.setItem(getRight(inv, 1), nameItem(getButton(Accept), "Take these items"));
 
 		// add back button
-		inv.setItem(getRight(inv, 0), nameItem(getButton(2), "Go Back"));
+		inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
 		
 		//add price button
-		inv.setItem(getRight(inv, 37), nameItem(getButton(8), playerInfo.temp.getAvailiableUnits() + " bulks left"));
-		inv.setItem(getRight(inv, 38), nameItem(getButton(8), "Seller: " + playerInfo.temp.getSeller()));
+		inv.setItem(getRight(inv, 37), nameItem(getButton(FreeItems), playerInfo.temp.getAvailiableUnits() + " bulks left"));
+		inv.setItem(getRight(inv, 38), nameItem(getButton(FreeItems), "Seller: " + playerInfo.temp.getSeller()));
 		
 		// add items
 		int i = 0;
@@ -391,8 +403,8 @@ public class MenuPainter {
 		
 		//add increment and decrement buttons
 		for (i = 0; i < 9; i++){
-			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(3), ""));
-			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(4), ""));
+			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Right), "Increment"));
+			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Left), "Decrement"));
 		}
 
 		// add price
@@ -422,7 +434,31 @@ public class MenuPainter {
 	 * @param whichButton
 	 * @return
 	 */
-	private static ItemStack getButton(int whichButton){
+	private static ItemStack getButton(int whichButton) {
+		switch (whichButton) {
+			case Cancel:
+				return new ItemStack(Material.BARRIER);
+			case Accept:
+				return new ItemStack(Material.SLIME_BLOCK);
+			case Help: 
+				return new ItemStack(Material.BOOK);
+			case Options: 
+				return new ItemStack(Material.IRON_PICKAXE);
+			case Admin: 
+				return new ItemStack(Material.PISTON_BASE);
+			case Left: 
+				return new ItemStack(Material.DIODE_BLOCK_OFF);
+			case Right: 
+				return new ItemStack(Material.DIODE_BLOCK_ON);
+			case MarketItems: 
+				return new ItemStack(Material.ANVIL);
+			case FreeItems: 
+				return new ItemStack(Material.CHEST);
+			case BuyItem: 
+				return new ItemStack(Material.IRON_AXE);
+			case SellOrRequest: 
+				return new ItemStack(Material.PAPER);
+		}
 		return new ItemStack(Material.WOOL, 1, (byte) whichButton);
 	}
 	
