@@ -18,9 +18,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  * Represents a Marketplace, for buying and selling items
  * 
  * @author Matthew
- * 
  */
-public class Market{
+public class Market {
 	
 	/**
 	 * The List of items that are currently up for sale on the market
@@ -60,14 +59,14 @@ public class Market{
 		
 	}
 	
-	public Set<Location> getAccessBlocks(){
+	public Set<Location> getAccessBlocks() {
 		return accessBlocks;
 	}
 	
 	/**
 	 * Save market data to file
 	 */
-	public void save(){
+	public void save() {
 		
 		YamlConfiguration configuration = new YamlConfiguration();
 		
@@ -81,7 +80,7 @@ public class Market{
 		
 		HashMap<String, Object> locations = new HashMap<String, Object>();
 		int i = 0;
-		for (Object location: accessBlocks.toArray()){
+		for (Object location : accessBlocks.toArray()) {
 			HashMap<String, Object> lmap = new HashMap<String, Object>();
 			lmap.put("world", ((Location)location).getWorld().getName());
 			lmap.put("x", ((Location)location).getX());
@@ -96,7 +95,7 @@ public class Market{
 		
 		i = 0;
 		marketItems = new HashMap<String, Map<String, Object>>();
-		for (MarketSale m: this.marketItems){
+		for (MarketSale m : this.marketItems){
 			marketItems.put(Integer.toString(i), m.serialize());
 			i++;
 		}
@@ -104,7 +103,7 @@ public class Market{
 		
 		i = 0;
 		requestedItems = new HashMap<String, Map<String, Object>>();
-		for (MarketSale m: this.requestedItems){
+		for (MarketSale m : this.requestedItems) {
 			requestedItems.put(Integer.toString(i), m.serialize());
 			i++;
 		}
@@ -112,7 +111,7 @@ public class Market{
 		
 		i = 0;
 		freeItems = new HashMap<String, Map<String, Object>>();
-		for (MarketSale m: this.freeItems){
+		for (MarketSale m : this.freeItems) {
 			freeItems.put(Integer.toString(i), m.serialize());
 			i++;
 		}
@@ -126,7 +125,7 @@ public class Market{
 			e.printStackTrace();
 		}
 		
-		System.out.println("[HomeWorldPlugin] Saved market to " + configFilename);
+		System.out.println("[GUIM] Saved market to " + configFilename);
 		
 	}
 

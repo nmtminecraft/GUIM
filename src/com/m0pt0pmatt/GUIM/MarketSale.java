@@ -16,7 +16,7 @@ import com.m0pt0pmatt.bettereconomy.accounts.UUIDFetcher;
  * Represents a sale on a market. Could be a normal sale, free item(s), or requested item(s)
  * A MarketSale is a multiple of units, where a unit is a collection of items. This is confusing, so here's an example
  * A unit is 5 coal and 5 wooden blocks. The sale has 20 units at $40 per unit
- * @author Matthew
+ * @author Matthew, James
  *
  */
 public class MarketSale {
@@ -115,8 +115,18 @@ public class MarketSale {
 //		}
 //		
 //		return seller;
-	public UUID getSeller(){
-		return UUID.fromString(seller);
+	public UUID getSeller() {
+		UUID result = null;
+		try {
+			result = UUID.fromString(seller);
+		} catch (Exception e) {
+			try {
+				result = UUIDFetcher.getUUIDOf(seller);
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+		}
+		return result;
 	}
 	
 	/**

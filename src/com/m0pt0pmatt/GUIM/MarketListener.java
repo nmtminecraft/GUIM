@@ -20,20 +20,32 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.m0pt0pmatt.GUIM.IO.HelpBookCreator;
+import com.m0pt0pmatt.GUIM.Player.PlayerInfo;
+import com.m0pt0pmatt.bettereconomy.io.EconomyLoadEvent;
+
 /**
- * The listener that handles all event interaction.
- * Warning: this class is a crazy beast, not a sexy one
- * @author Matthew
- *
+ * The listener that handles all event interaction.</br>
+ * <b>Warning:</b> this class is a crazy beast, not a sexy one.
+ * @author Matthew, James
  */
-public class MarketListener implements Listener{
+public class MarketListener implements Listener {
 	
 	JavaPlugin plugin;
 	
-	public MarketListener(JavaPlugin plugin){
+	public MarketListener(JavaPlugin plugin) {
 		this.plugin = plugin;
+	}
+	
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onEconomyLoad(EconomyLoadEvent event) {
+		if (GUIM.economy == null && event.getEconomy() != null) {
+			GUIM.economy = event.getEconomy();
+			plugin.getLogger().info("Successfully hooked into BetterEconomy!");
+		}
 	}
 	
 	
@@ -45,8 +57,6 @@ public class MarketListener implements Listener{
 	 */
 	@EventHandler(priority = EventPriority.HIGH)
 	public void marketStart(PlayerInteractEvent event) {
-		
-		
 		//get the player and the PlayerInfo
 		Player player = event.getPlayer();
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
@@ -293,7 +303,7 @@ public class MarketListener implements Listener{
 	}
 		
 	/**
-	 * What to do if the click was made while in a view iems menu, for market, request, and free
+	 * What to do if the click was made while in a view items menu, for market, request, and free
 	 * @param event
 	 *            the InventoryClickEvent
 	 * @param item
@@ -475,7 +485,7 @@ public class MarketListener implements Listener{
 
 
 	/**
-	 * The sell menu. Called when a player wants to buy an item
+	 * The buy menu. Called when a player wants to buy an item
 	 * 
 	 * @param event
 	 *            the InventoryClickEvent
@@ -574,8 +584,8 @@ public class MarketListener implements Listener{
 			}
 			
 			//request
-			if (playerInfo.menu.split(":")[0].equals("request")){
-				if (fulfillItem(player)){
+			if (playerInfo.menu.split(":")[0].equals("request")) {
+				if (fulfillItem(player)) {
 					// paint the chest for the main menu
 					playerInfo.menu = playerInfo.menu.split(":")[0].concat(":view");
 					
@@ -638,7 +648,7 @@ public class MarketListener implements Listener{
 			
 			//make sure player has funds
 			if (GUIM.economy.getBalance((OfflinePlayer)player) < (playerInfo.temp.getUnitQuantity() * playerInfo.temp.getUnitPrice())){
-				player.sendMessage("You don't have the funds to back this request");
+				player.sendMessage("You don't have the funds to back this request.");
 				return;
 			}
 			
@@ -690,18 +700,18 @@ public class MarketListener implements Listener{
 		Inventory inv = event.getInventory();
 		MarketSale marketSale = playerInfo.temp;
 		
-		if (event.getSlot() == MenuPainter.getLeft(inv, 3)){
+		if (event.getSlot() == MenuPainter.getLeft(inv, 3)) {
 			//which menu
 			HelpBookCreator.sellHelp(player);
 			return;
 		}
 		
 		//choose the correct stage (3 stages)
-		switch (playerInfo.menu.split(":")[2]){
+		switch (playerInfo.menu.split(":")[2]) {
 		//First stage: players choose items and quantities
 		case "quantity":
 			// create a market sale if one does not already exists
-			if (playerInfo.temp == null){
+			if (playerInfo.temp == null) {
 				playerInfo.temp = (new MarketSale(player.getUniqueId()));
 			}	
 
@@ -710,12 +720,12 @@ public class MarketListener implements Listener{
 				
 
 				//do nothing if the player clicked an empty spot
-				if (event.getCurrentItem().getType() == Material.AIR){
+				if (event.getCurrentItem().getType() == Material.AIR) {
 					return;
 				}
 				
 				//check for the max number of items
-				if (playerInfo.temp.getItems().size() >= 9){
+				if (playerInfo.temp.getItems().size() >= 9) {
 					player.sendMessage("Sale is full.");
 					return;
 				}
@@ -725,8 +735,8 @@ public class MarketListener implements Listener{
 				item.setAmount(1);
 				
 				//check if that type is already part of the sale
-				for (ItemStack saleItem: playerInfo.temp.getItems()){
-					if (saleItem.equals(item)){
+				for (ItemStack saleItem: playerInfo.temp.getItems()) {
+					if (saleItem.equals(item)) {
 						return;
 					}
 				}
@@ -735,8 +745,8 @@ public class MarketListener implements Listener{
 				playerInfo.temp.addItem(item);
 				
 				//make sure the previous quantity value is still valid
-				for (ItemStack saleItem: playerInfo.temp.getItems()){
-					if (countAmount(player, saleItem) < playerInfo.temp.getTotalQuantity()){
+				for (ItemStack saleItem : playerInfo.temp.getItems()) {
+					if (countAmount(player, saleItem) < playerInfo.temp.getTotalQuantity()) {
 						playerInfo.temp.setTotalQuantity(countAmount(player, saleItem));
 					}
 				}
@@ -1010,7 +1020,7 @@ public class MarketListener implements Listener{
 			// continue button was pressed
 			if (event.getSlot() == MenuPainter.getRight(inv, 1)) {
 				
-				saleMarketSale(player);
+				listMarketSale(player);
 				
 				playerInfo.temp = null;
 
@@ -1041,10 +1051,10 @@ public class MarketListener implements Listener{
 		
 	}
 
-	private static boolean saleMarketSale(Player player) {
+	private static boolean listMarketSale(Player player) {
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		
-		//sell the sale on the market
+		//list the sale on the market
 		MarketSale sale = playerInfo.temp;
 		for (ItemStack item: sale.getItems()){
 			if (!player.getInventory().containsAtLeast(item, sale.getTotalQuantity())){
@@ -1133,7 +1143,7 @@ public class MarketListener implements Listener{
 			return;
 		}
 
-		// buy the item		
+		//buy the item		
 		//add the items to the player's inventory
 		addItems(player, marketSale, playerInfo.unitQuantity);
 
@@ -1142,7 +1152,6 @@ public class MarketListener implements Listener{
 		OfflinePlayer seller = Bukkit.getOfflinePlayer(marketSale.getSeller());
 				
 		if (seller.isOnline()){
-			
 			Player onlineSeller = Bukkit.getPlayer(marketSale.getSeller());
 			
 			onlineSeller.sendMessage(player.getName() + " just bought " + playerInfo.unitQuantity + " units of your sale:" + marketSale.toString());
@@ -1345,31 +1354,46 @@ public class MarketListener implements Listener{
 		
 		//add items
 		//for each item in the sale
-		for (ItemStack item: marketSale.getItems()){
+		for (ItemStack item : marketSale.getItems()) {
 			
 			i = marketSale.getNumPerUnits() * bulkAmount;
 			
-			player.sendMessage(i + " " + item.getItemMeta().getDisplayName() + " to add");
+			if (item.getItemMeta().hasDisplayName()) {
+				player.sendMessage(i + " " + item.getItemMeta().getDisplayName() + " to add");
+			} else {
+				player.sendMessage(i + " " + item.getData().getItemType().toString() + " to add");
+			}
 			int j = 0;
 			//iterate though the player's inventory
-			for (ItemStack stack : inv.getContents()){
+			for (ItemStack stack : inv.getContents()) {
 				//if there is a stack
 				if (stack != null){
 					//if the items are similar
 					if (item.isSimilar(stack)){
 						//finish off this stack
-						if (i + stack.getAmount() <= 64){						
+						if (i + stack.getAmount() <= 64) {						
 							newItem = new ItemStack(stack);
 							newItem.setAmount(i + stack.getAmount());
+							
+							//Remove the market info lore from earlier
+							ItemMeta newInfo = newItem.getItemMeta();
+							newInfo.setLore(null);
+							newItem.setItemMeta(newInfo);
+							
 							inv.setItem(j, null);
 							inv.addItem(newItem);
 							i = 0;
-						}
-						//add the whole stack and keep going
-						else{
+						} else {
+							//add the whole stack and keep going
 							i -= 64 - stack.getAmount();
 							stack.setAmount(64);
 							newItem = new ItemStack(stack);
+							
+							//Remove the market info lore from earlier
+							ItemMeta newInfo = newItem.getItemMeta();
+							newInfo.setLore(null);
+							newItem.setItemMeta(newInfo);
+							
 							inv.setItem(j, null);
 							inv.addItem(newItem);
 						}
@@ -1378,11 +1402,17 @@ public class MarketListener implements Listener{
 				//if there is not a stack
 				else{
 					//finish off this stack
-					if (i <= 64){
-						player.sendMessage(item.toString());
+					if (i <= 64) {
+						//player.sendMessage(item.getData().getItemType().toString() + " x " + item.getAmount());
 						newItem = new ItemStack(item);
 						newItem.setAmount(i);
-						player.sendMessage(newItem.toString());
+						
+						//Remove the market info lore from earlier
+						ItemMeta newInfo = newItem.getItemMeta();
+						newInfo.setLore(null);
+						newItem.setItemMeta(newInfo);
+						
+						//player.sendMessage(newItem.getData().getItemType().toString() + " x " + newItem.getAmount());
 						inv.addItem(newItem);
 						i = 0;
 					}
@@ -1391,6 +1421,12 @@ public class MarketListener implements Listener{
 						i -= 64;
 						newItem = new ItemStack(item);
 						newItem.setAmount(64);
+						
+						//Remove the market info lore from earlier
+						ItemMeta newInfo = newItem.getItemMeta();
+						newInfo.setLore(null);
+						newItem.setItemMeta(newInfo);
+						
 						inv.addItem(newItem);
 					}
 				}

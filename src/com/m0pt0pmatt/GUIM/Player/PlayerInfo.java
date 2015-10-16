@@ -1,10 +1,12 @@
-package com.m0pt0pmatt.GUIM;
+package com.m0pt0pmatt.GUIM.Player;
 
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.Inventory;
+
+import com.m0pt0pmatt.GUIM.MarketSale;
 /**
  * This class keeps track of all variables for one player.
  * @author Matthew Broomfield
@@ -74,7 +76,7 @@ public class PlayerInfo {
 		currentMarket = null;
 		index = 0;
 		slots = 0;
-		inventory = Bukkit.getServer().createInventory(Bukkit.getPlayer(playerName), 54);
+		inventory = Bukkit.getServer().createInventory(Bukkit.getPlayer(playerName), 54, "Shop Menu");
 	}
 	
 }

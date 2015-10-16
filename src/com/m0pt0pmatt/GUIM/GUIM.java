@@ -21,15 +21,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.m0pt0pmatt.GUIM.IO.MarketCommand;
 import com.m0pt0pmatt.GUIM.IO.MarketTabCompleter;
+import com.m0pt0pmatt.GUIM.Player.PlayerInfo;
 import com.m0pt0pmatt.bettereconomy.BetterEconomy;
 import com.m0pt0pmatt.bettereconomy.EconomyManager;
 import com.m0pt0pmatt.bettereconomy.accounts.UUIDFetcher;
 
 
 /**
- * Main class for the plugin. Everything starts from here
- * @author Matthew
- *
+ * Main class for the plugin. Everything starts from here.
+ * @author Matthew, James
  */
 public class GUIM extends JavaPlugin {
 
@@ -53,9 +53,9 @@ public class GUIM extends JavaPlugin {
 	
 	
 	/**
-	 * This is ran once the plugin is enabled. It is ran after the constructor.
+	 * This is run once the plugin is enabled. It is run after the constructor.
 	 */
-	public void onEnable() {	
+	public void onEnable() {
 		this.getCommand("guim").setExecutor(new MarketCommand());
 		this.getCommand("guim").setTabCompleter(new MarketTabCompleter());
 		
@@ -66,11 +66,11 @@ public class GUIM extends JavaPlugin {
 		//create the playerInfo map
 		playerInfo = new HashMap<UUID, PlayerInfo>();
 		
-		//setup economy hook
-		if (setupEconomy()) {
-			getLogger().info("Hooked into Vault Economy.");
+		//Try and hook into BetterEconomy, although this may fail depending on the order plugins are loaded
+		if (setupEconomy() == false) {
+			getLogger().info("Unable to hook BetterEconomy yet, will try waiting for an EconomyLoadEvent.");
 		} else {
-			getLogger().warning("Vault Economy could not be found. Will try again later on a need basis.");
+			getLogger().info("Successfully hooked into BetterEconomy!");
 		}
 				
 		//load the markets
@@ -85,7 +85,7 @@ public class GUIM extends JavaPlugin {
 	}
  
 	/**
-	 * ran when the plugin is being disabled. saves the houses to file.
+	 * Runs when the plugin is being disabled. Saves the houses to file.
 	 */
 	public void onDisable() {
 		//save content
@@ -118,12 +118,12 @@ public class GUIM extends JavaPlugin {
 	 * @return
 	 */
 	public static boolean setupEconomy() {
-        if (Bukkit.getPluginManager().isPluginEnabled("BetterEconomy")) {
-            economy = BetterEconomy.economy;
-            return true;
-        }
-
-        return (false);
+		if (Bukkit.getPluginManager().isPluginEnabled("BetterEconomy")) {
+			economy = BetterEconomy.economy;
+			return true;
+		}
+		else
+			return false;
     }
 	
 	/**
@@ -336,6 +336,7 @@ public class GUIM extends JavaPlugin {
 	}
 	
 
+	
 	public static PlayerInfo getPlayerInfo(UUID playerName) {
 		return playerInfo.get(playerName);
 	}

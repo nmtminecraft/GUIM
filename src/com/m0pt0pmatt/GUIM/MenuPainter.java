@@ -1,6 +1,7 @@
 package com.m0pt0pmatt.GUIM;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -8,6 +9,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import com.m0pt0pmatt.GUIM.Player.PlayerInfo;
+
+/**
+ * This is where the actual display items and buttons in the menu are drawn.
+ * @author Matthew, James
+ */
 
 public class MenuPainter {
 	
@@ -25,11 +33,10 @@ public class MenuPainter {
 	
 	/**
 	 * Returns a place in the inventory, right-aligned to the offset
-	 * 
-	 * @param inv
-	 *            the Inventory
+	 * @param inv 
+	 * 			 	the Inventory to be examined
 	 * @param offset
-	 *            the offset after the alignment
+	 * 				the offset after the alignment
 	 * @return a place in the inventory, right-aligned to the offset
 	 */
 	public static int getRight(Inventory inv, int offset) {
@@ -40,16 +47,16 @@ public class MenuPainter {
 	 * Returns a place in the inventory, left-aligned to the offset
 	 * 
 	 * @param inv
-	 *            the Inventory
+	 *            the Inventory to be examined
 	 * @param offset
 	 *            the offset after the alignment
-	 * @return a place in the inventory, left-aligned
+	 * @return a place in the inventory, left-aligned to the offset
 	 */
 	public static int getLeft(Inventory inv, int offset) {
 		return inv.getSize() - 9 + offset;
 	}
 	
-	private static void paintMainMenu(Player player){
+	private static void paintMainMenu(Player player) {
 		Inventory inv = GUIM.getPlayerInfo(player.getUniqueId()).inventory;
 		
 		inv.clear();
@@ -76,7 +83,7 @@ public class MenuPainter {
 		inv.setItem(getRight(inv, 2), nameItem(getButton(Cancel), "Back"));
 		inv.setItem(getLeft(inv, 3), nameItem(getButton(Help), "Help"));
 
-		// get which list of items ans setup custom buttons
+		// get which list of items and setup custom buttons
 		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
 		ArrayList<MarketSale> items;
 		switch(playerInfo.menu.split(":")[0]){
@@ -102,8 +109,23 @@ public class MenuPainter {
 		}
 		
 		//display items
-		for (int j = 0; j < java.lang.Math.min((inv.getSize() - 9),items.size() - (playerInfo.index*45)); j++) {
+		for (int j = 0; j < java.lang.Math.min((inv.getSize() - 9), items.size() - (playerInfo.index * 45)); j++) {
 			ItemStack item = items.get((playerInfo.index * 45) + j).getItems().getFirst();
+			List<String> saleInfo = new ArrayList<String>();
+			MarketSale currentItem = market.getItem(playerInfo.index * 45 + j, playerInfo.menu.split(":")[0]);
+			
+			saleInfo.add("Seller: " + Bukkit.getOfflinePlayer(currentItem.getSeller()).getName());
+			if (currentItem.getNumPerUnits() > 1) {
+				saleInfo.add("Units per bundle: " + currentItem.getNumPerUnits());
+				saleInfo.add("Price per bundle: $" + currentItem.getUnitPrice());
+				saleInfo.add("Bundles remaining: " + currentItem.getUnitQuantity());
+			} else {
+				saleInfo.add("Price per unit: $" + currentItem.getUnitPrice());
+				saleInfo.add("Units remaining: " + currentItem.getTotalQuantity());
+			}
+			ItemMeta info = item.getItemMeta();
+			info.setLore(saleInfo);
+			item.setItemMeta(info);
 			inv.setItem(j, item);
 		}
 
@@ -123,14 +145,15 @@ public class MenuPainter {
 		// add back button
 		inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
 		inv.setItem(getLeft(inv, 3), nameItem(getButton(Help), "Help"));
+		
 		//add price button
 		inv.setItem(getRight(inv, 36), nameItem(getButton(FreeItems), "Sale is $" + playerInfo.temp.getUnitPrice() + " per unit"));
 		inv.setItem(getRight(inv, 37), nameItem(getButton(FreeItems), playerInfo.temp.getAvailiableUnits() + " bulks left"));
 		inv.setItem(getRight(inv, 38), nameItem(getButton(FreeItems), "Seller: " + Bukkit.getOfflinePlayer(playerInfo.temp.getSeller()).getName()));
 		
-		// add items
+		// add items that are being sold
 		int i = 0;
-		for (ItemStack item: playerInfo.temp.getItems()){
+		for (ItemStack item : playerInfo.temp.getItems()) {
 			inv.setItem(i, item);
 			inv.getItem(i).setAmount(playerInfo.temp.getNumPerUnits());
 			i++;
@@ -150,12 +173,12 @@ public class MenuPainter {
 				j++;
 				price -= java.lang.Math.pow(10, i);
 			}
+			
 			// j = 0. make a zero
 			if (j == 0) {
-
-			}
-			// j is not zero. make sticks
-			else {
+				
+			} else {
+				// j is not zero. make sticks
 				inv.setItem(getRight(inv, 9 + i), (new ItemStack(Material.STICK, j)));
 			}
 		}
@@ -447,9 +470,12 @@ public class MenuPainter {
 			case Admin: 
 				return new ItemStack(Material.PISTON_BASE);
 			case Left: 
-				return new ItemStack(Material.DIODE_BLOCK_OFF);
-			case Right: 
-				return new ItemStack(Material.DIODE_BLOCK_ON);
+				return new ItemStack(Material.TORCH);
+			case Right:
+				//ItemStack result = new ItemStack(Material.REDSTONE_LAMP_OFF);
+				//result.getData().
+				//return result;
+				return new ItemStack(Material.REDSTONE_TORCH_ON);
 			case MarketItems: 
 				return new ItemStack(Material.ANVIL);
 			case FreeItems: 
