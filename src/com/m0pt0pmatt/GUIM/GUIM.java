@@ -29,7 +29,7 @@ import com.m0pt0pmatt.bettereconomy.accounts.UUIDFetcher;
 
 /**
  * Main class for the plugin. Everything starts from here.
- * @author Matthew, James
+ * @author Matthew Broomfield, James Pelster
  */
 public class GUIM extends JavaPlugin {
 

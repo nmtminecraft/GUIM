@@ -16,7 +16,7 @@ import com.m0pt0pmatt.bettereconomy.accounts.UUIDFetcher;
  * Represents a sale on a market. Could be a normal sale, free item(s), or requested item(s)
  * A MarketSale is a multiple of units, where a unit is a collection of items. This is confusing, so here's an example
  * A unit is 5 coal and 5 wooden blocks. The sale has 20 units at $40 per unit
- * @author Matthew, James
+ * @author Matthew Broomfield, James Pelster
  *
  */
 public class MarketSale {
@@ -24,7 +24,7 @@ public class MarketSale {
 	/**
 	 * The items that are the parts of the MarketSale
 	 */
-	private LinkedList<ItemStack> items;
+	protected LinkedList<ItemStack> items;
 	
 	/**
 	 * The seller/requester of the item(s)
@@ -34,17 +34,17 @@ public class MarketSale {
 	/**
 	 * the price of one sale unit
 	 */
-	private int unitPrice;
+	protected int unitPrice;
 	
 	/**
 	 * the number of units
 	 */
-	private int numPerUnits;
+	protected int numPerUnits;
 	
 	/**
 	 * the total number of items which are in the entire sale
 	 */
-	private int quantity;
+	protected int quantity;
 	
 	/**
 	 * the number of units which have been fulfilled (request only)

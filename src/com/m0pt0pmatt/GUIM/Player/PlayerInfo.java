@@ -9,7 +9,7 @@ import org.bukkit.inventory.Inventory;
 import com.m0pt0pmatt.GUIM.MarketSale;
 /**
  * This class keeps track of all variables for one player.
- * @author Matthew Broomfield
+ * @author Matthew Broomfield, James Pelster
  */
 
 public class PlayerInfo {

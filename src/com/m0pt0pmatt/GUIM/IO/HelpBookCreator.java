@@ -8,7 +8,7 @@ import org.bukkit.inventory.meta.BookMeta;
 
 /**
  * Handles giving players help books to assist them with each area of the Market.
- * @author Matthew, James
+ * @author Matthew Broomfield, James Pelster
  */
 public class HelpBookCreator {
 

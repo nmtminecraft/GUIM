@@ -9,9 +9,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 /**
- * 
  * @author James Pelster
- *
  */
 public class MarketTabCompleter implements TabCompleter {
 	

@@ -14,7 +14,7 @@ import com.m0pt0pmatt.GUIM.Player.PlayerInfo;
 
 /**
  * This is where the actual display items and buttons in the menu are drawn.
- * @author Matthew, James
+ * @author Matthew Broomfield, James Pelster
  */
 
 public class MenuPainter {
@@ -56,6 +56,94 @@ public class MenuPainter {
 		return inv.getSize() - 9 + offset;
 	}
 	
+	/**
+	 * Paints the chest correctly, depending on the players current menu.
+	 * Eventually, this will act as the sole interface for painting menus.
+	 * @param player
+	 */
+	public static void paintMenu(Player player) {
+		if (player == null) {
+			System.out.println("1");
+			return;
+		}
+		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
+		if (playerInfo == null) {
+			System.out.println("2");
+			return;
+		}
+		String menu = playerInfo.menu;
+		if (menu == null) {
+			System.out.println("3");
+			return;
+		}
+		
+		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
+		if (market == null) {
+			System.out.println("4");
+			return;
+		}
+		
+		String[] parts = menu.split(":");
+		
+		switch (parts[0]) {
+		case "main":
+			paintMainMenu(player);
+			break;
+		case "market":
+			switch (parts[1]) {
+			case "view": 
+				paintViewItemMenu(player);
+				break;
+			case "buy":
+				paintBuyMenu(player);
+				break;
+			case "sell":
+				paintSellMenu(player);
+				break;
+			}
+			break;
+		case "request":
+			switch (parts[1]) {
+			case "view":
+				paintViewItemMenu(player);
+				break;
+			case "buy":
+				paintBuyMenu(player);
+				break;
+			case "confirm":
+				paintConfirmMenu(player);
+				break;
+			}
+			break;
+		case "free":
+			switch (parts[1]) {
+			case "view":
+				paintViewItemMenu(player);
+				break;
+			case "buy":
+				paintTakeMenu(player);
+				break;
+			case "sell":
+				paintSellMenu(player);
+				break;
+			}
+			break;
+		case "options":
+			paintOptionsMenu(player);
+			break;
+		case "admin":
+			switch (parts[1]) {
+			case "view":
+				paintAdminMenu(player);
+				break;
+			case "sellserver":
+				paintSellMenu(player);
+				break;
+			}
+			break;
+		}
+	}
+	
 	private static void paintMainMenu(Player player) {
 		Inventory inv = GUIM.getPlayerInfo(player.getUniqueId()).inventory;
 		
@@ -69,7 +157,6 @@ public class MenuPainter {
 	}
 	
 	private static void paintViewItemMenu(Player player) {
-
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		Inventory inv = playerInfo.inventory;
 		
@@ -128,7 +215,6 @@ public class MenuPainter {
 			item.setItemMeta(info);
 			inv.setItem(j, item);
 		}
-
 	}
 	
 	private static void paintBuyMenu(Player player) {
@@ -311,91 +397,10 @@ public class MenuPainter {
 		inv.clear();
 
 		// add menu buttons
+		inv.setItem(getLeft(inv, 0), nameItem(getButton(SellOrRequest), "Sell Infinite Item from Server"));
 
 		// add back button
 		inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
-	}
-
-	/**
-	 * Paints the chest correctly, depending on the players current menu.
-	 * Eventually, this will act as the sole interface for painting menus.
-	 * @param player
-	 */
-	public static void paintMenu(Player player) {
-		if (player == null){
-			System.out.println("1");
-			return;
-		}
-		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
-		if (playerInfo == null){
-			System.out.println("2");
-			return;
-		}
-		String menu = playerInfo.menu;
-		if (menu == null){
-			System.out.println("3");
-			return;
-		}
-		
-		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
-		if (market == null){
-			System.out.println("4");
-			return;
-		}
-		
-		String[] parts = menu.split(":");
-		
-		switch (parts[0]){
-		case "main":
-			paintMainMenu(player);
-			break;
-		case "market":
-			switch (parts[1]){
-			case "view": 
-				paintViewItemMenu(player);
-				break;
-			case "buy":
-				paintBuyMenu(player);
-				break;
-			case "sell":
-				paintSellMenu(player);
-				break;
-			}
-			break;
-		case "request":
-			switch (parts[1]){
-			case "view":
-				paintViewItemMenu(player);
-				break;
-			case "buy":
-				paintBuyMenu(player);
-				break;
-			case "confirm":
-				paintConfirmMenu(player);
-				break;
-			}
-			break;
-		case "free":
-			switch (parts[1]){
-			case "view":
-				paintViewItemMenu(player);
-				break;
-			case "buy":
-				paintTakeMenu(player);
-				break;
-			case "sell":
-				paintSellMenu(player);
-				break;
-			}
-			break;
-		case "options":
-			paintOptionsMenu(player);
-			break;
-		case "admin":
-			paintAdminMenu(player);
-			break;
-		}
-		
 	}
 	
 	private static void paintTakeMenu(Player player) {

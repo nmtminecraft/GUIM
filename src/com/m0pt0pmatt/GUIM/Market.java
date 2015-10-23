@@ -17,7 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * Represents a Marketplace, for buying and selling items
  * 
- * @author Matthew
+ * @author Matthew Broomfield, James Pelster
  */
 public class Market {
 	
@@ -67,7 +67,6 @@ public class Market {
 	 * Save market data to file
 	 */
 	public void save() {
-		
 		YamlConfiguration configuration = new YamlConfiguration();
 		
 		//configuration.getFile().delete();
