@@ -24,24 +24,7 @@ public class MarketCommand implements CommandExecutor {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		
-		if (args.length == 0) {
-			//print usage
-			sender.sendMessage("You must specify a sub-command. Maybe you should try /guim help");
-			return false;
-		}
-		
-		if (args[0].equalsIgnoreCase("help")) {
-			onUserCommand(sender, args);
-			return true;
-		}
-		
-		if (args[0].equalsIgnoreCase("create")) {
-			onAdminCommand(sender, args);
-			return true;
-		}
-		
-		return false;
+		return onUserCommand(sender, args);
 	}
 	
 	protected static List<String> getAdminCommandList() {
@@ -53,38 +36,40 @@ public class MarketCommand implements CommandExecutor {
 	}
 	
 	/**
-	 * Handles the admin commands
+	 * Handles the user commands
 	 * @param sender
 	 * @param args
-	 * 
 	 */
-	private void onUserCommand(CommandSender sender, String[] args) {
+	private boolean onUserCommand(CommandSender sender, String[] args) {
 		//[help]
-		if(args.length < 1) {
+		if(args.length < 1 || args[0].equalsIgnoreCase("help")) {
 			//print usage, cause we're no longer handled by onCommand!
 			sender.sendMessage("GUIM Commands:");
 			sender.sendMessage("/guim help - shows this");
 			sender.sendMessage("/guim create [market name] - creates a new market with the specified name");
-			sender.sendMessage("/guim reload - reloads the plugin");
-			return;
+			sender.sendMessage("/guim reload - reloads the plugin (admin only)");
+		} else if (args[0].equalsIgnoreCase("create")) {
+			return tryMarketCreate(sender, args);
 		}
+		return false;
 	}
 
-	private void onMarketCreate(CommandSender sender, String[] args) {
+	private boolean tryMarketCreate(CommandSender sender, String[] args) {
 		// /guim create [marketName]
 		if(args.length != 2){
 			sender.sendMessage("Incorrect number of arguments! \n");
 			sender.sendMessage("usage: /guim create [marketName]");
-			return;
+			return false;
 		}
 		
 		System.out.println(GUIM.marketListener);
 		System.out.println(sender);
 		System.out.println(args[1]);
 		GUIM.marketListener.setupMarket((Player) sender, args[1]);
-		return;
+		return true;
 	}
 
+	@Deprecated
 	/**
 	 * Handles the admin 'session' command
 	 * @param sender
@@ -96,7 +81,7 @@ public class MarketCommand implements CommandExecutor {
 		//this is what EDFs has, and it feels pretty similar in terms of 'sessions'
 		
 		if (args[0].equalsIgnoreCase("create")) {
-			onMarketCreate(sender, args);
+			tryMarketCreate(sender, args);
 			return true;
 		}
 		

@@ -1,6 +1,6 @@
 name: GUIM
 main: com.m0pt0pmatt.GUIM.GUIM
-version: 0.5
+version: 0.6
 softdepend: [Vault, BetterEconomy]
 commands:
     GUIM:
