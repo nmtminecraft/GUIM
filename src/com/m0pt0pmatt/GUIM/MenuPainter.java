@@ -4,10 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.block.Banner;
+import org.bukkit.block.banner.Pattern;
+import org.bukkit.block.banner.PatternType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BannerMeta;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.m0pt0pmatt.GUIM.Player.PlayerInfo;
@@ -24,12 +30,14 @@ public class MenuPainter {
 			Help = 2, 
 			Options = 3, 
 			Left = 4, 
-			Right = 5, 
-			MarketItems = 6,
-			BuyItem = 7,
-			SellOrRequest = 8, 
-			FreeItems = 9,
-			Admin = 10;
+			Right = 5,
+            Up = 6,
+            Down = 7,
+			MarketItems = 8,
+			BuyItem = 9,
+			SellOrRequest = 10,
+			FreeItems = 11,
+			Admin = 12;
 	
 	/**
 	 * Returns a place in the inventory, right-aligned to the offset
@@ -137,7 +145,7 @@ public class MenuPainter {
 				paintAdminMenu(player);
 				break;
 			case "sellserver":
-				paintSellMenu(player);
+				paintServerSellMenu(player);
 				break;
 			}
 			break;
@@ -247,8 +255,8 @@ public class MenuPainter {
 		
 		//add increment and decrement buttons
 		for (i = 0; i < 9; i++){
-			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Right), "Increment"));
-			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Left), "Decrement"));
+            inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
+            inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
 		}
 
 		// add price
@@ -318,8 +326,8 @@ public class MenuPainter {
 
 		//add increment and decrement buttons
 		for (int i = 0; i < 9; i++){
-			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Right), "Increment"));
-			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Left), "Decrement"));
+			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
+			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
 		}
 		
 		// add the item if it exists
@@ -340,7 +348,7 @@ public class MenuPainter {
 		
 		// add price
 		int amount = 0;
-		String stage = playerInfo.menu.split(":")[2];
+		String stage = playerInfo.menu.split(":")[playerInfo.menu.split(":").length - 1];
 		switch(stage){
 		case "quantity":
 			amount = playerInfo.temp.getUnitQuantity();
@@ -369,6 +377,76 @@ public class MenuPainter {
 			}
 		}
 	}
+
+
+    private static void paintServerSellMenu(Player player) {
+        PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
+        Inventory inv = playerInfo.inventory;
+
+        // clear inventory
+        inv.clear();
+
+        // add menu buttons
+        // add buy button
+        inv.setItem(getRight(inv, 1), nameItem(getButton(Accept), "Go Forward"));
+        inv.setItem(getLeft(inv, 3), nameItem(getButton(Help), "Help"));
+
+        // add back button
+        inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
+
+        //add increment and decrement buttons
+        for (int i = 0; i < 9; i++){
+            inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
+            inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
+        }
+
+        // add the item if it exists
+        if (playerInfo.tempServer == null){
+            playerInfo.tempServer = new ServerMarketSale();
+        }
+        int i = 0;
+        for (ItemStack item: playerInfo.tempServer.getItems()) {
+            inv.setItem(i, item);
+            i++;
+        }
+
+        //finish if there is not a price (item is free)
+        if (playerInfo.menu.split(":")[1].equals("free")){
+            return;
+        }
+
+
+        // add price
+        int amount = 0;
+        String stage = playerInfo.menu.split(":")[playerInfo.menu.split(":").length - 1];
+        switch(stage){
+            case "quantity":
+                amount = playerInfo.tempServer.getUnitQuantity();
+                break;
+            case "bulk":
+                amount = playerInfo.tempServer.getNumPerUnits();
+                break;
+            case "price":
+                amount = playerInfo.tempServer.getUnitPrice();
+                break;
+        }
+
+        for (i = 0; i < 9; i++) {
+            int j = 0;
+            while ((amount % (java.lang.Math.pow(10, i + 1))) != 0) {
+                j++;
+                amount -= java.lang.Math.pow(10, i);
+            }
+            // j = 0. make a zero
+            if (j == 0) {
+
+            }
+            // j is not zero. make sticks
+            else {
+                inv.setItem(getRight(inv, 9 + i), new ItemStack(Material.STICK, j));
+            }
+        }
+    }
 	
 	
 	
@@ -431,8 +509,8 @@ public class MenuPainter {
 		
 		//add increment and decrement buttons
 		for (i = 0; i < 9; i++){
-			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Right), "Increment"));
-			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Left), "Decrement"));
+			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
+			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
 		}
 
 		// add price
@@ -458,7 +536,7 @@ public class MenuPainter {
 	
 
 	/**
-	 * This method is a placeholder for when buttons can be configurable itemstacks. For now, it just returns a block of wool in the color you specify
+	 * This method is a placeholder for when buttons can be configurable itemstacks.
 	 * @param whichButton
 	 * @return
 	 */
@@ -466,29 +544,83 @@ public class MenuPainter {
 		switch (whichButton) {
 			case Cancel:
 				return new ItemStack(Material.BARRIER);
+
 			case Accept:
 				return new ItemStack(Material.SLIME_BLOCK);
+
 			case Help: 
 				return new ItemStack(Material.BOOK);
+
 			case Options: 
 				return new ItemStack(Material.IRON_PICKAXE);
+
 			case Admin: 
 				return new ItemStack(Material.PISTON_BASE);
-			case Left: 
-				return new ItemStack(Material.TORCH);
+
+			case Left:
+			    ItemStack leftArrow = new ItemStack(Material.BANNER);
+			    BannerMeta leftArrowMeta = (BannerMeta)leftArrow.getItemMeta();
+				leftArrowMeta.setBaseColor(DyeColor.WHITE);
+				leftArrowMeta.addPattern(new Pattern(DyeColor.BLACK, PatternType.RHOMBUS_MIDDLE));
+                leftArrowMeta.addPattern(new Pattern(DyeColor.BLACK, PatternType.HALF_VERTICAL_MIRROR));
+                leftArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.SQUARE_BOTTOM_RIGHT));
+                leftArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.SQUARE_TOP_RIGHT));
+                leftArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.TRIANGLES_BOTTOM));
+                leftArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.TRIANGLES_TOP));
+                leftArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.BORDER));
+
+                leftArrow.setItemMeta(leftArrowMeta);
+				return leftArrow;
+
 			case Right:
-				//ItemStack result = new ItemStack(Material.REDSTONE_LAMP_OFF);
-				//result.getData().
-				//return result;
-				return new ItemStack(Material.REDSTONE_TORCH_ON);
+                ItemStack rightArrow = new ItemStack(Material.BANNER);
+                BannerMeta rightArrowMeta = (BannerMeta)rightArrow.getItemMeta();
+                rightArrowMeta.setBaseColor(DyeColor.WHITE);
+                rightArrowMeta.addPattern(new Pattern(DyeColor.BLACK, PatternType.RHOMBUS_MIDDLE));
+                rightArrowMeta.addPattern(new Pattern(DyeColor.BLACK, PatternType.HALF_VERTICAL));
+                rightArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.SQUARE_BOTTOM_LEFT));
+                rightArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.SQUARE_TOP_LEFT));
+                rightArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.TRIANGLES_BOTTOM));
+                rightArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.TRIANGLES_TOP));
+                rightArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.BORDER));
+
+                rightArrow.setItemMeta(rightArrowMeta);
+                return rightArrow;
+
+            case Up:
+                ItemStack upArrow = new ItemStack(Material.BANNER);
+                BannerMeta upArrowMeta = (BannerMeta)upArrow.getItemMeta();
+                upArrowMeta.setBaseColor(DyeColor.WHITE);
+                upArrowMeta.addPattern(new Pattern(DyeColor.BLACK, PatternType.STRIPE_CENTER));
+                upArrowMeta.addPattern(new Pattern(DyeColor.BLACK, PatternType.STRIPE_TOP));
+                upArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.CURLY_BORDER));
+
+                upArrow.setItemMeta(upArrowMeta);
+                return upArrow;
+
+            case Down:
+                ItemStack downArrow = new ItemStack(Material.BANNER);
+                BannerMeta downArrowMeta = (BannerMeta)downArrow.getItemMeta();
+                downArrowMeta.setBaseColor(DyeColor.WHITE);
+                downArrowMeta.addPattern(new Pattern(DyeColor.BLACK, PatternType.STRIPE_CENTER));
+                downArrowMeta.addPattern(new Pattern(DyeColor.BLACK, PatternType.STRIPE_BOTTOM));
+                downArrowMeta.addPattern(new Pattern(DyeColor.WHITE, PatternType.CURLY_BORDER));
+
+                downArrow.setItemMeta(downArrowMeta);
+                return downArrow;
+
 			case MarketItems: 
 				return new ItemStack(Material.ANVIL);
+
 			case FreeItems: 
 				return new ItemStack(Material.CHEST);
+
 			case BuyItem: 
 				return new ItemStack(Material.IRON_AXE);
+
 			case SellOrRequest: 
 				return new ItemStack(Material.PAPER);
+
 		}
 		return new ItemStack(Material.WOOL, 1, (byte) whichButton);
 	}

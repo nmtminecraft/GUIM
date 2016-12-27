@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
 
+import com.m0pt0pmatt.bettereconomy.accounts.UUIDFetcher;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -313,7 +314,6 @@ public class MarketListener implements Listener {
 	 * What to do if the click was made while in a view items menu, for market, request, and free
 	 * @param event
 	 *            the InventoryClickEvent
-	 * @param item
 	 */
 	private static void viewItemsMenuEvent(InventoryClickEvent event, Market market) {
 		Player player = (Player) event.getWhoClicked();
@@ -574,7 +574,11 @@ public class MarketListener implements Listener {
 			
 			//market
 			if (playerInfo.menu.split(":")[0].equals("market")){
-				buyItem(player);
+				try {
+                    buyItem(player);
+                } catch (Exception e) {
+				    e.printStackTrace();
+                }
 
 				// paint the chest for the main menu
 				playerInfo.menu = playerInfo.menu.split(":")[0].concat(":view");
@@ -1057,6 +1061,322 @@ public class MarketListener implements Listener {
 		}
 	}
 
+    /**
+     * The sell menu. Called when a player wants to sell an item
+     *
+     * @param event
+     *            the InventoryClickEvent
+     */
+    private static void sellServerMenuEvent(InventoryClickEvent event, Market market) {
+        Player player = (Player) event.getWhoClicked();
+        PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
+        Inventory inv = event.getInventory();
+        ServerMarketSale marketSale = playerInfo.tempServer;
+
+        if (event.getSlot() == MenuPainter.getLeft(inv, 3)) {
+            //which menu
+            HelpBookCreator.sellHelp(player);
+            return;
+        }
+
+        //choose the correct stage (3 stages)
+        switch (playerInfo.menu.split(":")[playerInfo.menu.split(":").length - 1]) {
+            //First stage: players choose items and quantities
+            case "quantity":
+                // create a market sale if one does not already exists
+                if (playerInfo.tempServer == null) {
+                    playerInfo.tempServer = (new ServerMarketSale());
+                }
+
+                // click was made in the player's inventory
+                if (event.getRawSlot() > event.getSlot()) {
+
+
+                    //do nothing if the player clicked an empty spot
+                    if (event.getCurrentItem().getType() == Material.AIR) {
+                        return;
+                    }
+
+                    //check for the max number of items
+                    if (playerInfo.tempServer.getItems().size() >= 9) {
+                        player.sendMessage("Sale is full.");
+                        return;
+                    }
+
+                    // create the representative item
+                    ItemStack item = new ItemStack(event.getCurrentItem());
+                    item.setAmount(1);
+
+                    //check if that type is already part of the sale
+                    for (ItemStack saleItem: playerInfo.tempServer.getItems()) {
+                        if (saleItem.equals(item)) {
+                            return;
+                        }
+                    }
+
+                    //place the representative item in the sale
+                    playerInfo.tempServer.addItem(item);
+
+                    player.sendMessage("Item added to sale.");
+
+                    // repaint
+                    MenuPainter.paintMenu(player);
+
+                    return;
+                }
+
+                // if click was to change a place in the value
+                for (int i = 0; i < 9; i++) {
+                    int newValue;
+
+                    //decrement
+                    if (event.getSlot() == MenuPainter.getRight(inv, (18 + i))) {
+
+                        newValue = (int) (marketSale.getTotalQuantity() - java.lang.Math.pow(10, i));
+
+                        // make sure the value is still positive
+                        if (newValue <= 1) {
+                            marketSale.setTotalQuantity(-1);
+                            MenuPainter.paintMenu(player);
+                            return;
+                        }
+
+                        //set price
+                        marketSale.setTotalQuantity(newValue);
+
+                        //repaint
+                        MenuPainter.paintMenu(player);
+                        return;
+                    }
+
+                    //increment
+                    if (event.getSlot() == MenuPainter.getRight(inv, (27 + i))) {
+
+                        if (marketSale.getTotalQuantity() < 1)
+                            marketSale.setTotalQuantity(1);
+
+                        newValue = (int)(marketSale.getTotalQuantity() + java.lang.Math.pow(10, i));
+
+                        //make sure the value isn't over bounds
+                        if (newValue > 999999999) {
+                            marketSale.setTotalQuantity(999999999);
+                            MenuPainter.paintMenu(player);
+                            player.sendMessage("Value too high");
+                            return;
+                        }
+
+                        //set price
+                        marketSale.setTotalQuantity(newValue);
+
+                        MenuPainter.paintMenu(player);
+                        return;
+                    }
+                }
+
+                // continue button was pressed
+                if (event.getSlot() == MenuPainter.getRight(inv, 1)) {
+                    //market
+                    if (playerInfo.menu.startsWith("admin")) {
+                        // make sure there is an item to sell
+                        if (playerInfo.tempServer.getItems().size() == 0) {
+                            return;
+                        }
+
+                        //set menuB to next sub menu
+                        playerInfo.menu = playerInfo.menu.replace("quantity", "bulk");
+
+                        player.sendMessage("Quantity set. Now, choose how many items will be sold in a bundle.");
+
+                        //paint
+                        MenuPainter.paintMenu(player);
+
+                    }
+
+                    return;
+                }
+
+                // player pressed the back button
+                else if (event.getSlot() == MenuPainter.getRight(inv, 0)) {
+
+                    //remove the toSell
+                    playerInfo.tempServer = null;
+
+                    // paint the chest for the main menu
+                    playerInfo.menu = playerInfo.menu.split(":")[0].concat(":view");
+                    MenuPainter.paintMenu(player);
+
+                    return;
+                }
+
+                //player clicked a possible item spot
+                else if (event.getSlot() < 18){
+                    //remove the item from the market sale
+                    playerInfo.tempServer.removeItem(inv.getItem(event.getSlot()));
+
+                    //repaint
+                    MenuPainter.paintMenu(player);
+                    return;
+                }
+                break;
+
+            //Second stage: players choose how much of the item(s) are considered one bulk
+            case "bulk":
+                // if click was to change a place in the value
+                for (int i = 0; i < 9; i++) {
+                    int newValue;
+
+                    //decrement
+                    if (event.getSlot() == MenuPainter.getRight(inv, (18 + i))) {
+
+                        newValue = (int) (marketSale.getNumPerUnits() - java.lang.Math.pow(10, i));
+
+                        // make sure the value is still positive
+                        if (newValue < 1) {
+                            marketSale.setNumPerUnits(1);
+                            MenuPainter.paintMenu(player);
+                            return;
+                        }
+
+                        //set price
+                        marketSale.setNumPerUnits(newValue);
+
+                        // repaint
+                        MenuPainter.paintMenu(player);
+                        return;
+                    }
+
+                    //increment
+                    if (event.getSlot() == MenuPainter.getRight(inv, (27 + i))) {
+
+                        newValue = (int) (marketSale.getNumPerUnits() + java.lang.Math.pow(10, i));
+
+                        //make sure new value isn't above total item count
+                        if (newValue > marketSale.getTotalQuantity()){
+                            marketSale.setNumPerUnits(marketSale.getTotalQuantity());
+                            MenuPainter.paintMenu(player);
+                            return;
+                        }
+
+                        //make sure the price isn't over bounds
+                        if (newValue > 999999999) {
+                            marketSale.setNumPerUnits(999999999);
+                            MenuPainter.paintMenu(player);
+                            return;
+                        }
+
+                        //set price
+                        marketSale.setNumPerUnits(newValue);
+
+                        MenuPainter.paintMenu(player);
+                        return;
+                    }
+                }
+
+                //continue button was pressed
+                if (event.getSlot() == MenuPainter.getRight(inv, 1)) {
+
+                    //make sure the bulk value divides into the quantity
+                    if (marketSale.getTotalQuantity() % marketSale.getNumPerUnits() != 0){
+                        player.sendMessage("Cannot choose this value. You will be left with items");
+                        return;
+                    }
+
+                    //set menu to next sub-menu
+                    playerInfo.menu = playerInfo.menu.replace("bulk", "price");
+
+                    //paint
+                    MenuPainter.paintMenu(player);
+                    return;
+                }
+
+                //player pressed the back button
+                else if (event.getSlot() == MenuPainter.getRight(inv, 0)) {
+
+                    // paint the chest for the main menu
+                    playerInfo.menu = playerInfo.menu.replace("bulk", "quantity");
+                    MenuPainter.paintMenu(player);
+
+                    return;
+                }
+
+                break;
+
+            //Third stage: players set price of 1 bulk
+            case "price":
+                // if click was to change a place in the value
+                for (int i = 0; i < 9; i++) {
+                    int newValue;
+
+                    //decrement
+                    if (event.getSlot() == MenuPainter.getRight(inv, (18 + i))) {
+
+                        newValue = (int) (marketSale.getUnitPrice() - java.lang.Math.pow(10, i));
+
+                        // make sure the value is still positive
+                        if (newValue < 1) {
+                            marketSale.setPrice(1);
+                            MenuPainter.paintMenu(player);
+                            return;
+                        }
+
+                        //set price
+                        marketSale.setPrice(newValue);
+
+                        // repaint
+                        MenuPainter.paintMenu(player);
+                        return;
+                    }
+
+                    //increment
+                    if (event.getSlot() == MenuPainter.getRight(inv, (27 + i))) {
+
+                        newValue = (int) (marketSale.getUnitPrice() + java.lang.Math.pow(10, i));
+
+                        //make sure the price isn't over bounds
+                        if (newValue > 999999999) {
+                            marketSale.setPrice(999999999);
+                            MenuPainter.paintMenu(player);
+                            return;
+                        }
+
+                        //set price
+                        marketSale.setPrice(newValue);
+
+                        MenuPainter.paintMenu(player);
+                        return;
+                    }
+                }
+
+                // continue button was pressed
+                if (event.getSlot() == MenuPainter.getRight(inv, 1)) {
+
+                    listServerMarketSale(player);
+
+                    // paint the chest for the main menu
+                    playerInfo.menu = playerInfo.menu.split(":")[0].concat(":view");
+                    MenuPainter.paintMenu(player);
+
+                    //update the menu of anyone who was viewing the new change
+                    GUIM.updateMenu(market.getFullName(), playerInfo.menu);
+
+                    //rid the temp
+                    playerInfo.tempServer = null;
+                    return;
+                }
+
+                // player pressed the back button
+                else if (event.getSlot() == MenuPainter.getRight(inv, 0)) {
+
+                    // paint the chest for the main menu
+                    playerInfo.menu = playerInfo.menu.replace("price", "bulk");
+                    MenuPainter.paintMenu(player);
+
+                    return;
+                }
+                break;
+        }
+    }
+
 	private static boolean listMarketSale(Player player) {
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		
@@ -1080,6 +1400,22 @@ public class MarketListener implements Listener {
 		market.numSales.put(player.getUniqueId(), num + 1);
 		return true;
 		
+	}
+
+	private static boolean listServerMarketSale(Player player) {
+		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
+
+		//list the sale on the market
+		ServerMarketSale sale = playerInfo.tempServer;
+
+		GUIM.marketNames.get(playerInfo.currentMarket).marketItems.add(new MarketSale(sale.getSeller(), sale.unitPrice, sale.getNumPerUnits(), sale.getTotalQuantity()));
+
+		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
+		int num = market.numSales.get(sale.getSeller());
+		market.numSales.remove(sale.getSeller());
+		market.numSales.put(sale.getSeller(), num + 1);
+		return true;
+
 	}
 
 	private static int countAmount(Player player, ItemStack item) {
@@ -1145,387 +1481,19 @@ public class MarketListener implements Listener {
 			return;
 		}
 	}
-	
-	/**
-	 * The sell menu. Called when a player wants to sell an item
-	 * 
-	 * @param event
-	 *            the InventoryClickEvent
-	 */
-	private static void sellServerMenuEvent(InventoryClickEvent event, Market market) {
-		Player player = (Player) event.getWhoClicked();
-		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
-		Inventory inv = event.getInventory();
-		ServerMarketSale marketSale = (ServerMarketSale)playerInfo.temp;
-		
-		if (event.getSlot() == MenuPainter.getLeft(inv, 3)) {
-			//which menu
-			HelpBookCreator.sellHelp(player);
-			return;
-		}
-		
-		//choose the correct stage (3 stages)
-		switch (playerInfo.menu.split(":")[2]) {
-		//First stage: players choose items and quantities
-		case "quantity":
-			// create a market sale if one does not already exists
-			if (playerInfo.temp == null) {
-				playerInfo.temp = (new MarketSale(player.getUniqueId()));
-			}	
-
-			// click was made in the player's inventory
-			if (event.getRawSlot() > event.getSlot()) {
-				
-
-				//do nothing if the player clicked an empty spot
-				if (event.getCurrentItem().getType() == Material.AIR) {
-					return;
-				}
-				
-				//check for the max number of items
-				if (playerInfo.temp.getItems().size() >= 9) {
-					player.sendMessage("Sale is full.");
-					return;
-				}
-				
-				// create the representative item
-				ItemStack item = new ItemStack(event.getCurrentItem());
-				item.setAmount(1);
-				
-				//check if that type is already part of the sale
-				for (ItemStack saleItem: playerInfo.temp.getItems()) {
-					if (saleItem.equals(item)) {
-						return;
-					}
-				}
-				
-				//place the representative item in the sale
-				playerInfo.temp.addItem(item);
-				
-				//make sure the previous quantity value is still valid
-				for (ItemStack saleItem : playerInfo.temp.getItems()) {
-					if (countAmount(player, saleItem) < playerInfo.temp.getTotalQuantity()) {
-						playerInfo.temp.setTotalQuantity(countAmount(player, saleItem));
-					}
-				}
-				
-				player.sendMessage("Item added to sale.");
-
-				// repaint
-				MenuPainter.paintMenu(player);
-
-				return;
-			}
-
-			// if click was to change a place in the value
-			for (int i = 0; i < 9; i++) {
-				int newValue;
-				
-				//decrement
-				if (event.getSlot() == MenuPainter.getRight(inv, (18 + i))) {
-
-					newValue = (int) (marketSale.getTotalQuantity() - java.lang.Math.pow(10, i));
-					
-					// make sure the value is still positive
-					if (newValue <= 1) {
-						marketSale.setTotalQuantity(-1);
-						MenuPainter.paintMenu(player);
-						return;
-					}
-					
-					//set price
-					marketSale.setTotalQuantity(newValue);
-
-					//repaint
-					MenuPainter.paintMenu(player);
-					return;
-				}
-				
-				//increment
-				if (event.getSlot() == MenuPainter.getRight(inv, (27 + i))) {
-					
-					if (marketSale.getTotalQuantity() < 1)
-						marketSale.setTotalQuantity(1);
-					
-					newValue = (int) (marketSale.getTotalQuantity() + java.lang.Math.pow(10, i));
-					
-					//make sure there is enough of all items
-					for (ItemStack item: playerInfo.temp.getItems()) {
-						if (countAmount(player, item) < newValue){
-							marketSale.setTotalQuantity(countAmount(player, item));
-							MenuPainter.paintMenu(player);
-							return;
-						}
-					}
-					
-					//make sure the price isn't over bounds
-					if (newValue > 999999999) {
-						marketSale.setTotalQuantity(999999999);
-						MenuPainter.paintMenu(player);
-						player.sendMessage("Value too high");
-						return;
-					}
-					
-					//set price
-					marketSale.setTotalQuantity(newValue);
-
-					MenuPainter.paintMenu(player);
-					return;
-				}
-			}
-
-			// continue button was pressed
-			if (event.getSlot() == MenuPainter.getRight(inv, 1)) {
-				//market
-				if (playerInfo.menu.startsWith("market")) {
-					// make sure there is an item to sell
-					if (playerInfo.temp.getItems().size() == 0) {
-						return;
-					}
-					
-					//set menuB to next sub menu
-					playerInfo.menu = playerInfo.menu.replace("quantity", "bulk");
-					
-					player.sendMessage("Quantity set. Now, choose how many items will be sold in a bundle.");
-					
-					//paint
-					MenuPainter.paintMenu(player);
-					
-				}
-				
-				//free
-				else if (playerInfo.menu.startsWith("free")){
-					// make sure there is an item to sell
-					if (playerInfo.temp.getItems().size() == 0) {
-						return;
-					}
-					
-					//set defaults
-					playerInfo.temp.setNumPerUnits(1);
-					playerInfo.temp.setPrice(0);
-					
-					//add free items
-					GUIM.marketNames.get(playerInfo.currentMarket).freeItems.add(playerInfo.temp);
-					
-					//remove from inventory
-					takeItems(player, playerInfo.temp, playerInfo.temp.getUnitQuantity());
-					
-					//set menuB to next sub menu
-					playerInfo.menu = "free:view";
-					
-					player.sendMessage("Free items added.");
-					
-					//paint
-					MenuPainter.paintMenu(player);
-					
-					//rid the temp
-					playerInfo.temp = null;
-					
-				}
-
-				return;
-			}
-
-			// player pressed the back button
-			else if (event.getSlot() == MenuPainter.getRight(inv, 0)) {
-				
-				//remove the toSell
-				playerInfo.temp = null;
-
-				// paint the chest for the main menu
-				playerInfo.menu = playerInfo.menu.split(":")[0].concat(":view");
-				MenuPainter.paintMenu(player);
-				
-				return;
-			}
-			
-			//player clicked a possible item spot
-			else if (event.getSlot() < 18){
-				//remove the item from the market sale
-				playerInfo.temp.removeItem(inv.getItem(event.getSlot()));
-				
-				//repaint
-				MenuPainter.paintMenu(player);
-				return;
-			}
-			break;
-			
-		//Second stage: players choose how much of the item(s) are considered one bulk
-		case "bulk":
-			// if click was to change a place in the value
-			for (int i = 0; i < 9; i++) {
-				int newValue;
-				
-				//decrement
-				if (event.getSlot() == MenuPainter.getRight(inv, (18 + i))) {
-
-					newValue = (int) (marketSale.getNumPerUnits() - java.lang.Math.pow(10, i));
-					
-					// make sure the value is still positive
-					if (newValue < 1) {
-						marketSale.setNumPerUnits(1);
-						MenuPainter.paintMenu(player);
-						return;
-					}
-					
-					//set price
-					marketSale.setNumPerUnits(newValue);
-
-					// repaint
-					MenuPainter.paintMenu(player);
-					return;
-				}
-				
-				//increment
-				if (event.getSlot() == MenuPainter.getRight(inv, (27 + i))) {
-					
-					newValue = (int) (marketSale.getNumPerUnits() + java.lang.Math.pow(10, i));
-					
-					//make sure new value isn't above total item count
-					if (newValue > marketSale.getTotalQuantity()){
-						marketSale.setNumPerUnits(marketSale.getTotalQuantity());
-						MenuPainter.paintMenu(player);
-						return;
-					}
-					
-					//make sure the price isn't over bounds
-					if (newValue > 999999999) {
-						marketSale.setNumPerUnits(999999999);
-						MenuPainter.paintMenu(player);
-						return;
-					}
-					
-					//set price
-					marketSale.setNumPerUnits(newValue);
-
-					MenuPainter.paintMenu(player);
-					return;
-				}
-			}
-			
-			//continue button was pressed
-			if (event.getSlot() == MenuPainter.getRight(inv, 1)) {
-				
-				//make sure the bulk value divides into the quantity
-				if (marketSale.getTotalQuantity() % marketSale.getNumPerUnits() != 0){
-					player.sendMessage("Cannot choose this value. You will be left with items");
-					return;
-				}
-				
-				//set menu to next sub-menu
-				playerInfo.menu = playerInfo.menu.replace("bulk", "price");
-				
-				//paint
-				MenuPainter.paintMenu(player);
-				return;
-			}
-
-			//player pressed the back button
-			else if (event.getSlot() == MenuPainter.getRight(inv, 0)) {
-
-				// paint the chest for the main menu
-				playerInfo.menu = playerInfo.menu.replace("bulk", "quantity");
-				MenuPainter.paintMenu(player);
-				
-				return;
-			}
-			
-			break;
-		
-		//Third stage: players set price of 1 bulk
-		case "price":
-			// if click was to change a place in the value
-			for (int i = 0; i < 9; i++) {
-				int newValue;
-				
-				//decrement
-				if (event.getSlot() == MenuPainter.getRight(inv, (18 + i))) {
-
-					newValue = (int) (marketSale.getUnitPrice() - java.lang.Math.pow(10, i));
-					
-					// make sure the value is still positive
-					if (newValue < 1) {
-						marketSale.setPrice(1);
-						MenuPainter.paintMenu(player);
-						return;
-					}
-					
-					//set price
-					marketSale.setPrice(newValue);
-
-					// repaint
-					MenuPainter.paintMenu(player);
-					return;
-				}
-				
-				//increment
-				if (event.getSlot() == MenuPainter.getRight(inv, (27 + i))) {
-					
-					newValue = (int) (marketSale.getUnitPrice() + java.lang.Math.pow(10, i));
-					
-					//make sure the price isn't over bounds
-					if (newValue > 999999999) {
-						marketSale.setPrice(999999999);
-						MenuPainter.paintMenu(player);
-						return;
-					}
-					
-					//set price
-					marketSale.setPrice(newValue);
-
-					MenuPainter.paintMenu(player);
-					return;
-				}
-			}
-			
-			// continue button was pressed
-			if (event.getSlot() == MenuPainter.getRight(inv, 1)) {
-				
-				listMarketSale(player);
-				
-				playerInfo.temp = null;
-
-				// paint the chest for the main menu
-				playerInfo.menu = playerInfo.menu.split(":")[0].concat(":view");
-				MenuPainter.paintMenu(player);	
-				
-				//update the menu of anyone who was viewing the new change
-				GUIM.updateMenu(market.getFullName(), playerInfo.menu);
-				
-				//rid the temp
-				playerInfo.temp = null;
-				return;
-			}
-
-			// player pressed the back button
-			else if (event.getSlot() == MenuPainter.getRight(inv, 0)) {
-				
-				// paint the chest for the main menu
-				playerInfo.menu = playerInfo.menu.replace("price", "bulk");
-				MenuPainter.paintMenu(player);
-				
-				return;
-			}
-			break;
-		}
-	}
 
 	/**
 	 * Player buys an item. Item is taken off of the market
 	 * 
 	 * @param player
 	 *            the player buying the item
-	 * @param item
-	 *            the item to be bought
-	 * @param inv
-	 *            the inventory of the market (to be repainted)
 	 */
-	private static void buyItem(Player player) {
+	private static void buyItem(Player player) throws Exception {
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
 		MarketSale marketSale = playerInfo.temp;
 		
-		if (market == null){
+		if (market == null) {
 			return;
 		}
 
@@ -1557,36 +1525,39 @@ public class MarketListener implements Listener {
 		//add the items to the player's inventory
 		addItems(player, marketSale, playerInfo.unitQuantity);
 
-		//give the seller the money
-		GUIM.economy.depositPlayer(Bukkit.getOfflinePlayer(marketSale.getSeller()), playerInfo.unitQuantity * marketSale.getUnitPrice());
-		OfflinePlayer seller = Bukkit.getOfflinePlayer(marketSale.getSeller());
-				
-		if (seller.isOnline()){
-			Player onlineSeller = Bukkit.getPlayer(marketSale.getSeller());
-			
-			onlineSeller.sendMessage(player.getName() + " just bought " + playerInfo.unitQuantity + " units of your sale:" + marketSale.toString());
-			onlineSeller.sendMessage("You made $" + playerInfo.unitQuantity * marketSale.getUnitPrice());
-		}
+		//if we're not buying from the server's infinite supply
+		if (marketSale.getSeller() != null && marketSale.getSeller() != UUIDFetcher.getUUIDOf("__Server_")) {
+            //give the seller the money
+            GUIM.economy.depositPlayer(Bukkit.getOfflinePlayer(marketSale.getSeller()), playerInfo.unitQuantity * marketSale.getUnitPrice());
+            OfflinePlayer seller = Bukkit.getOfflinePlayer(marketSale.getSeller());
+
+            if (seller.isOnline()) {
+                Player onlineSeller = Bukkit.getPlayer(marketSale.getSeller());
+
+                onlineSeller.sendMessage(player.getName() + " just bought " + playerInfo.unitQuantity + " units of your sale:" + marketSale.toString());
+                onlineSeller.sendMessage("You made $" + playerInfo.unitQuantity * marketSale.getUnitPrice());
+            }
+
+            //remove items from the sale
+            marketSale.setTotalQuantity(marketSale.getTotalQuantity() - (playerInfo.unitQuantity * marketSale.getNumPerUnits()));
+
+            // remove the sale if it is depleted
+            if (marketSale.getTotalQuantity() <= 0) {
+                for (MarketSale item: market.marketItems){
+                    if (item.equals(marketSale)){
+                        market.decrementPlayer(marketSale.getSeller());
+                        market.marketItems.remove(item);
+
+                        break;
+                    }
+                }
+            }
+        }
 				
 		//withdraw money from the purchaser
 		GUIM.economy.withdrawPlayer(player, playerInfo.unitQuantity * marketSale.getUnitPrice());
 		player.sendMessage("you bought " + playerInfo.unitQuantity + " units of the sale:" + marketSale.toString());
 		player.sendMessage("You paid $" + playerInfo.unitQuantity * marketSale.getUnitPrice());
-		
-		//remove items from the sale
-		marketSale.setTotalQuantity(marketSale.getTotalQuantity() - (playerInfo.unitQuantity * marketSale.getNumPerUnits()));
-
-		// remove the sale if it is depleted
-		if (marketSale.getTotalQuantity() <= 0){
-			for (MarketSale item: market.marketItems){
-				if (item.equals(marketSale)){
-					market.decrementPlayer(marketSale.getSeller());
-					market.marketItems.remove(item);
-					
-					break;
-				}
-			}
-		}
 	}
 	
 	private static boolean fulfillItem(Player player) {
@@ -1600,7 +1571,7 @@ public class MarketListener implements Listener {
 		}
 		
 		//check if player has items
-		if (!playerhasItems(player, marketSale, playerInfo.unitQuantity)){
+		if (!playerHasItems(player, marketSale, playerInfo.unitQuantity)){
 			player.sendMessage("You do not have the items in your inventory.");
 			return false;
 		}
@@ -1734,7 +1705,7 @@ public class MarketListener implements Listener {
 		return true;
 	}
 	
-	private static boolean playerhasItems(Player player, MarketSale marketSale, int amount){
+	private static boolean playerHasItems(Player player, MarketSale marketSale, int amount){
 		int i;
 		//for each item in the marketsale
 		for (ItemStack item: marketSale.getItems()){
