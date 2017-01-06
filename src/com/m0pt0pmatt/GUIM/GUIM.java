@@ -329,7 +329,9 @@ public class GUIM extends JavaPlugin {
 			}
 			
 			//create and add the new sale
-			sales.add(MarketSale.deserialize(saleMap));
+            MarketSale m = MarketSale.deserialize(saleMap);
+			if (m != null && m.getItems().size() > 0)
+			    sales.add(m);
 		}
 		
 		return sales;
@@ -345,8 +347,7 @@ public class GUIM extends JavaPlugin {
 		playerInfo.put(playerName, new PlayerInfo(playerName));
 	}
 
-	
-	
+
 	
 	public static void updateMenu(String marketName, String whichMenu) {
 		String menu;

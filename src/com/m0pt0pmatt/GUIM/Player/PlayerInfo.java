@@ -2,7 +2,6 @@ package com.m0pt0pmatt.GUIM.Player;
 
 import java.util.UUID;
 
-import com.m0pt0pmatt.GUIM.ServerMarketSale;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.Inventory;
@@ -22,7 +21,7 @@ public class PlayerInfo {
 	public String currentMarket = null;
 	
 	/**
-	 * Which page the player in currently viewing. Used when a menu has multiple pages/screens
+	 * Which page the player is currently viewing. Used when a menu has multiple pages/screens
 	 */
 	public int index = 0;
 	
@@ -40,7 +39,6 @@ public class PlayerInfo {
 	 * This is to keep track when a player is in the process of buying or selling something on the market
 	 */
 	public MarketSale temp = null;
-	public ServerMarketSale tempServer = null;
 	
 	public UUID name = null;
 	
@@ -78,7 +76,7 @@ public class PlayerInfo {
 		currentMarket = null;
 		index = 0;
 		slots = 0;
-		inventory = Bukkit.getServer().createInventory(Bukkit.getPlayer(playerName), 54, "Shop Menu");
+		inventory = Bukkit.getServer().createInventory(Bukkit.getPlayer(playerName), 54, "Market: ");
 	}
 	
 }

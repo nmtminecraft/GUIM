@@ -27,6 +27,7 @@ public class Market {
 	public ArrayList<MarketSale> marketItems;
 	public ArrayList<MarketSale> freeItems;
 	public ArrayList<MarketSale> requestedItems;
+    public static ArrayList<MarketSale> globalMarketItems;
 	
 	private String configFilename;
 	
@@ -45,6 +46,8 @@ public class Market {
 		marketItems = new ArrayList<MarketSale>();
 		freeItems = new ArrayList<MarketSale>();
 		requestedItems = new ArrayList<MarketSale>();
+		if (globalMarketItems == null) globalMarketItems = new ArrayList<MarketSale>();
+
 		this.numSales = numSales;
 		
 		//set the names
@@ -179,7 +182,7 @@ public class Market {
 		
 	}
 	
-	public void IncrementPlayer(UUID playerName) {
+	public void incrementPlayer(UUID playerName) {
 		int num = numSales.get(playerName);
 		num = num++;
 		numSales.remove(playerName);
