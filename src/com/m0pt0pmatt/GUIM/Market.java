@@ -28,20 +28,19 @@ public class Market {
 	public ArrayList<MarketSale> freeItems;
 	public ArrayList<MarketSale> requestedItems;
     public static ArrayList<MarketSale> globalMarketItems;
-	
+
+    public Map<UUID, Integer> numSales;
+    public static int maxNumber = 10;
 	private String configFilename;
-	
-	private Set<Location> accessBlocks;
+	private HashSet<Location> accessBlocks;
 	private String name = null;
 	private UUID owner = null;
-	public Map<UUID, Integer> numSales;
-	public static int maxNumber = 10;
 	private JavaPlugin plugin;
 
 	/**
 	 * Default Constructor
 	 */
-	public Market(UUID owner, String name, Set<Location> accessBlocks, Map<UUID, Integer> numSales, JavaPlugin plugin) {
+	public Market(UUID owner, String name, HashSet<Location> accessBlocks, Map<UUID, Integer> numSales, JavaPlugin plugin) {
 		//create internal objects
 		marketItems = new ArrayList<MarketSale>();
 		freeItems = new ArrayList<MarketSale>();
@@ -53,16 +52,15 @@ public class Market {
 		//set the names
 		this.name = name;
 		this.owner = owner;
-		
+
 		//set access block
 		this.accessBlocks = new HashSet<Location>();
 		this.accessBlocks = accessBlocks;
 		this.configFilename = owner + "--" + name + ".yml";
 		this.plugin = plugin;
-		
 	}
-	
-	public Set<Location> getAccessBlocks() {
+
+	public HashSet<Location> getAccessBlocks() {
 		return accessBlocks;
 	}
 	
@@ -134,14 +132,14 @@ public class Market {
 	public String getFullName() {
 		String fullName = "";
 		if (owner != null) {
-			fullName += Bukkit.getOfflinePlayer(owner).getName()+" -- ";
+			fullName += Bukkit.getOfflinePlayer(owner).getName()+":";
 		}
 		fullName += name;
 		return fullName;
 	}
 	
-	public String getReadableName() {
-		return Bukkit.getPlayer(owner).getName() + "--" + name;
+	public String getName() {
+        return name;
 	}
 
 

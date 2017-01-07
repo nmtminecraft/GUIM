@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
 
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,9 +25,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import net.milkbowl.vault.item.Items;
-import net.milkbowl.vault.item.ItemInfo;
 
 import com.m0pt0pmatt.GUIM.IO.HelpBookCreator;
 import com.m0pt0pmatt.GUIM.Player.PlayerInfo;
@@ -76,7 +76,7 @@ public class MarketListener implements Listener {
 		}
 		
 		//check if the player clicked on an access block
-		Market market = GUIM.marketLocations.get(event.getClickedBlock().getLocation());
+		Market market = GUIM.getMarketLocations().get(event.getClickedBlock().getLocation());
 		if (market == null) {
 			return;
 		}
@@ -125,7 +125,7 @@ public class MarketListener implements Listener {
 		if (playerInfo.currentMarket == null) {
 			return;
 		}
-		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
+		Market market = GUIM.markets.get(playerInfo.currentMarket);
 
 		//don't allow any right clicking
 		if (event.isRightClick()) {
@@ -635,7 +635,7 @@ public class MarketListener implements Listener {
 			GUIM.economy.withdrawPlayer((OfflinePlayer)player, (playerInfo.temp.getTotalUnitQuantity() * playerInfo.temp.getUnitPrice()));
 			
 			//place the request on the market
-			GUIM.marketNames.get(playerInfo.currentMarket).requestedItems.add(playerInfo.temp);
+			GUIM.markets.get(playerInfo.currentMarket).requestedItems.add(playerInfo.temp);
 			playerInfo.temp = null;
 			
 			// paint the chest for the main menu
@@ -656,7 +656,6 @@ public class MarketListener implements Listener {
 
 		// player pressed the back button
 		else if (event.getSlot() == MenuPainter.getRight(inv, 0)) {
-			player.sendMessage("You pressed the back button.");
 
 			// paint the chest for the main menu
 			playerInfo.menu = playerInfo.menu.split(":")[0].concat(":view");
@@ -814,7 +813,7 @@ public class MarketListener implements Listener {
                             playerInfo.temp.setUnitPrice(0);
 
                             //add free items
-                            GUIM.marketNames.get(playerInfo.currentMarket).freeItems.add(playerInfo.temp);
+                            GUIM.markets.get(playerInfo.currentMarket).freeItems.add(playerInfo.temp);
 
                             //remove from inventory
                             takeItems(player, playerInfo.temp, playerInfo.temp.getTotalUnitQuantity());
@@ -888,7 +887,7 @@ public class MarketListener implements Listener {
 
                             newValue = (int) (playerInfo.temp.getUnitSize() + java.lang.Math.pow(10, i));
 
-                            //make sure new value isnt above total item count
+                            //make sure new value isn't above total item count
                             if (newValue > playerInfo.temp.getTotalQuantity()) {
                                 playerInfo.temp.setUnitSize(playerInfo.temp.getTotalQuantity());
                                 MenuPainter.paintMenu(player);
@@ -896,9 +895,9 @@ public class MarketListener implements Listener {
                             }
 
                             //make sure the value isn't over bounds
-                            if (newValue > 999999999) {
-                                newValue = 999999999;
-                            }
+							if (newValue > 2304) {
+								newValue = 2304;
+							}
 
                             //set bulk quantity
                             playerInfo.temp.setUnitSize(newValue);
@@ -966,10 +965,10 @@ public class MarketListener implements Listener {
 
                             newValue = (int) (playerInfo.temp.getUnitPrice() + java.lang.Math.pow(10, i));
 
-                            //make sure the price isn't over bounds
-                            if (newValue > 999999999) {
-                                newValue = 999999999;
-                            }
+                            //make sure the value isn't over bounds
+							if (newValue > 2304) {
+								newValue = 2304;
+							}
 
                             //set price
                             playerInfo.temp.setUnitPrice(newValue);
@@ -1129,8 +1128,8 @@ public class MarketListener implements Listener {
                             newValue = (int)(playerInfo.temp.getUnitSize() + java.lang.Math.pow(10, i));
 
                             //make sure the value isn't over bounds
-                            if (newValue > 999999999) {
-                                newValue = 999999999;
+                            if (newValue > 2304) {
+                                newValue = 2304;
                             }
 
                             //set bulk quantity
@@ -1251,9 +1250,9 @@ public class MarketListener implements Listener {
 
 		takeItems(player, playerInfo.temp, playerInfo.temp.getTotalUnitQuantity());
 		
-		GUIM.marketNames.get(playerInfo.currentMarket).marketItems.add(sale);
+		GUIM.markets.get(playerInfo.currentMarket).marketItems.add(sale);
 		
-		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
+		Market market = GUIM.markets.get(playerInfo.currentMarket);
 		int num = market.numSales.get(player.getUniqueId()); 
 		market.incrementPlayer(player.getUniqueId());
 		return true;
@@ -1263,7 +1262,7 @@ public class MarketListener implements Listener {
 	private static boolean listServerMarketSale(Player player) {
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 
-		GUIM.marketNames.get(playerInfo.currentMarket).marketItems.add(playerInfo.temp);
+		GUIM.markets.get(playerInfo.currentMarket).marketItems.add(playerInfo.temp);
 		return true;
 	}
 
@@ -1298,7 +1297,6 @@ public class MarketListener implements Listener {
 		// if back button was pressed
 		if (event.getSlot() == MenuPainter.getRight(inv, 0)) {
 			// set chest up for item menu
-			player.sendMessage("Main Menu");
 			
 			// set the player's menu
 			playerInfo.menu = "main";
@@ -1327,7 +1325,6 @@ public class MarketListener implements Listener {
 		// if back button was pressed
 		if (event.getSlot() == MenuPainter.getRight(inv, 0)) {
 			// set chest up for item menu
-			player.sendMessage("Main Menu");
 			
 			// set the player's menu
 			playerInfo.menu = "main";
@@ -1346,7 +1343,7 @@ public class MarketListener implements Listener {
 	 */
 	private static void buyItem(Player player) throws Exception {
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
-		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
+		Market market = GUIM.markets.get(playerInfo.currentMarket);
 		
 		if (market == null) {
 			return;
@@ -1387,8 +1384,10 @@ public class MarketListener implements Listener {
             if (seller.isOnline()) {
                 Player onlineSeller = Bukkit.getPlayer(playerInfo.temp.getSeller());
 
-                onlineSeller.sendMessage(player.getName() + " just bought " + playerInfo.unitQuantity + " units of your sale:" + playerInfo.temp.toString());
-                onlineSeller.sendMessage("You made $" + playerInfo.unitQuantity * playerInfo.temp.getUnitPrice());
+                TextComponent saleMsg = new TextComponent(player.getName() + " just bought from one of your sales. Hover over this message to see sale info.");
+                saleMsg.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(playerInfo.temp.getSaleInfo(playerInfo, true)).create()));
+
+                onlineSeller.spigot().sendMessage(saleMsg);
             }
 
             //remove items from the sale
@@ -1413,29 +1412,10 @@ public class MarketListener implements Listener {
 		//withdraw money from the purchaser
 		GUIM.economy.withdrawPlayer(player, playerInfo.unitQuantity * playerInfo.temp.getUnitPrice());
 
-        String purchaseMsg = "You just purchased ";
-        int i;
-        for (ItemStack stack : playerInfo.temp.getItems())
-        {
-            i = playerInfo.temp.getUnitSize() * playerInfo.unitQuantity;
+        TextComponent purchaseMsg = new TextComponent("Purchase successful. Hover over this message to see sale information.");
+        purchaseMsg.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(playerInfo.temp.getSaleInfo(playerInfo, false)).create()));
 
-            if (playerInfo.temp.getItems().size() > 2) {
-                if (playerInfo.temp.getItems().indexOf(stack) <= (playerInfo.temp.getItems().size() - 2))
-                    purchaseMsg += i + " " + Items.itemByStack(stack).getName() + ", ";
-                else
-                    purchaseMsg += "and " + i + " " + Items.itemByStack(stack).getName() + " ";
-            } else if (playerInfo.temp.getItems().size() == 2) {
-                if (playerInfo.temp.getItems().indexOf(stack) <= (playerInfo.temp.getItems().size() - 2))
-                    purchaseMsg += i + " " + Items.itemByStack(stack).getName() + " ";
-                else
-                    purchaseMsg += "and " + i + " " + Items.itemByStack(stack).getName() + " ";
-            } else {
-                purchaseMsg += i + " " + Items.itemByStack(stack).getName() + " ";
-            }
-        }
-        purchaseMsg += "for $" + playerInfo.unitQuantity * playerInfo.temp.getUnitPrice() + ".";
-
-        player.sendMessage(purchaseMsg);
+        player.spigot().sendMessage(purchaseMsg);
 	}
 	
 	private static boolean fulfillItem(Player player) {
@@ -1471,7 +1451,7 @@ public class MarketListener implements Listener {
 	
 	private static boolean pickupItem(Player player) {
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
-		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
+		Market market = GUIM.markets.get(playerInfo.currentMarket);
 		MarketSale marketSale = playerInfo.temp;	
 		
 		//check if request has been fulfilled
@@ -1515,7 +1495,7 @@ public class MarketListener implements Listener {
 
 	private static boolean freeItem(Player player) {
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
-		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
+		Market market = GUIM.markets.get(playerInfo.currentMarket);
 		MarketSale marketSale = playerInfo.temp;
 		
 		//check if player has room
@@ -1585,7 +1565,7 @@ public class MarketListener implements Listener {
                 } else { //if there is not a stack
                     //finish off this stack
                     if (i <= stack.getMaxStackSize()) {
-                        //player.sendMessage(item.getData().getItemType().toString() + " x " + item.getAmount());
+                        //player.sendMessage(item.getData().getItemType().getSaleInfo() + " x " + item.getAmount());
                         newItem = new ItemStack(stack);
                         newItem.setAmount(i);
 
@@ -1594,7 +1574,7 @@ public class MarketListener implements Listener {
                         newInfo.setLore(null);
                         newItem.setItemMeta(newInfo);
 
-                        //player.sendMessage(newItem.getData().getItemType().toString() + " x " + newItem.getAmount());
+                        //player.sendMessage(newItem.getData().getItemType().getSaleInfo() + " x " + newItem.getAmount());
                         inv.addItem(newItem);
                         i = 0;
                     } else { //add the whole stack and keep going
@@ -1678,8 +1658,7 @@ public class MarketListener implements Listener {
 	private static int maxUnitsPlayerCanBuy(Player player, MarketSale marketSale)
     {
         int units = 0;
-        while (playerHasSpace(player, marketSale, units))
-        {
+        while (playerHasSpace(player, marketSale, units)) {
             units++;
         }
 
@@ -1701,7 +1680,7 @@ public class MarketListener implements Listener {
 				}
 			}
 			//if we still needed items, return false.
-			if (i > 0){
+			if (i > 0) {
 				return false;
 			}
 		}
@@ -1723,17 +1702,17 @@ public class MarketListener implements Listener {
 		
 		//take items
 		//for each item in the sale
-		for (ItemStack item: marketSale.getItems()){
+		for (ItemStack item: marketSale.getItems()) {
 			i = marketSale.getUnitSize() * bulkAmount;
 			int j = 0;
 			//iterate though the player's inventory
-			for (ItemStack stack : inv.getContents()){
+			for (ItemStack stack : inv.getContents()) {
 				//if there is a stack
-				if (stack != null){
+				if (stack != null) {
 					//if the items are similar
-					if (item.isSimilar(stack)){
+					if (item.isSimilar(stack)) {
 						//if we do not need to take the whole stack
-						if (i < stack.getAmount()){
+						if (i < stack.getAmount()) {
 							
 							stack.setAmount(stack.getAmount() - i);
 							newItem = new ItemStack(stack);
@@ -1749,14 +1728,14 @@ public class MarketListener implements Listener {
 					}
 				}
 				
-				if (i == 0){
+				if (i == 0) {
 					//finish this item
 					break;
 				}
 				j++;
 			}
 			//something went wrong
-			if (i != 0){
+			if (i != 0) {
 				return false;
 			}
 			
@@ -1775,14 +1754,14 @@ public class MarketListener implements Listener {
 		}
 		
 		//make sure that marketname is not already in use
-		if (GUIM.marketNames.get(player.getUniqueId() + "--" + name) != null){
+		if (GUIM.markets.get(player.getUniqueId() + ":" + name) != null) {
 			player.sendMessage("You already have a market with that name.");
 			return;
 		}
 		
 		player.sendMessage("Please right-click the block which you would like to make into a market.");
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
-		if (playerInfo == null){
+		if (playerInfo == null) {
 			GUIM.addPlayerInfo(player.getUniqueId());
 			playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		}
@@ -1799,18 +1778,19 @@ public class MarketListener implements Listener {
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
 		
 		
-		if (playerInfo == null){
+		if (playerInfo == null) {
 			return;
 		}
-		if (event.getAction() == Action.RIGHT_CLICK_BLOCK){
-			if (playerInfo.creatingMarket == true){
+		if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if (playerInfo.creatingMarket == true) {
 				event.setCancelled(true);
 				HashSet<Location> locations = new HashSet<Location>();
 				locations.add(event.getClickedBlock().getLocation());
 				
 				Market m = new Market(player.getUniqueId(), playerInfo.marketName, locations, new HashMap<UUID, Integer>(), plugin);
-				GUIM.marketNames.put(m.getFullName(), m);
-				GUIM.marketLocations.put(event.getClickedBlock().getLocation(), m);
+				GUIM.markets.put(m.getFullName(), m);
+				GUIM.updateMarketLocations();
+
 				playerInfo.creatingMarket = false;
 				playerInfo.marketName = null;
 				playerInfo.accessBlock = null;
@@ -1822,9 +1802,9 @@ public class MarketListener implements Listener {
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH)
-	public void preventBlocks(org.bukkit.event.entity.EntityExplodeEvent event){
-		for (Block block: event.blockList()){
-			if (GUIM.marketLocations.containsKey(block.getLocation())){
+	public void preventBlocks(org.bukkit.event.entity.EntityExplodeEvent event) {
+		for (Block block: event.blockList()) {
+			if (GUIM.getMarketLocations().containsKey(block.getLocation())) {
 				event.blockList().remove(block);
 			}
 		}

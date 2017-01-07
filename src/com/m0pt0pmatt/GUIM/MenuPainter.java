@@ -84,9 +84,10 @@ public class MenuPainter {
 			return;
 		}
 		
-		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
+		Market market = GUIM.markets.get(playerInfo.currentMarket);
 		if (market == null) {
-			System.out.println("4");
+			System.out.println("Error: Player " + playerInfo.name + " attempted to access a null market \"" + playerInfo.currentMarket + "\""); // + "\" located at "
+                //+ playerInfo.accessBlock.getLocation().getSaleInfo() + " in world " + playerInfo.accessBlock.getWorld().getSaleInfo());
 			return;
 		}
 		
@@ -118,7 +119,7 @@ public class MenuPainter {
 				paintBuyMenu(player);
 				break;
 			case "confirm":
-				paintConfirmMenu(player);
+				paintConfirmRequestMenu(player);
 				break;
 			}
 			break;
@@ -156,7 +157,7 @@ public class MenuPainter {
         Inventory inv = playerInfo.inventory;
 
         //notify the player of which market he or she is in
-        InventoryTitleHelper.sendInventoryTitle(player, "Market: " + GUIM.marketNames.get(playerInfo.currentMarket).getFullName());
+        InventoryTitleHelper.sendInventoryTitle(player, "Market: " + GUIM.markets.get(playerInfo.currentMarket).getName());
 		
 		inv.clear();
 		inv.setItem(getLeft(inv, 0), nameItem(getButton(MarketItems), "Market Items"));
@@ -183,7 +184,7 @@ public class MenuPainter {
 		inv.setItem(getLeft(inv, 3), nameItem(getButton(Help), "Help"));
 
 		// get which list of items and setup custom buttons
-		Market market = GUIM.marketNames.get(playerInfo.currentMarket);
+		Market market = GUIM.markets.get(playerInfo.currentMarket);
 		ArrayList<MarketSale> items;
 		switch(playerInfo.menu.split(":")[0]){
 		case "market":
@@ -257,18 +258,18 @@ public class MenuPainter {
 			inv.getItem(i).setAmount(playerInfo.temp.getUnitSize());
 			i++;
 		}
-		
+
 		// add increment and decrement buttons
-		for (i = 0; i < 9; i++){
+        for (i = 0; i < 4; i++) {
             inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
             inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
-		}
+        }
 	}
 	
-	private static void paintConfirmMenu(Player player) {
+	private static void paintConfirmRequestMenu(Player player) {
 		PlayerInfo playerInfo = GUIM.getPlayerInfo(player.getUniqueId());
         Inventory inv = playerInfo.inventory;
-        InventoryTitleHelper.sendInventoryTitle(player, "Confirm Sale");
+        InventoryTitleHelper.sendInventoryTitle(player, "Confirm Request");
 
         // clear inventory
         inv.clear();
@@ -281,10 +282,9 @@ public class MenuPainter {
 		inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
 		
 		//add price button
-		inv.setItem(getRight(inv, 36), nameItem(getButton(FreeItems), "Sale is $" + playerInfo.temp.getUnitPrice() + " per unit"));
-		inv.setItem(getRight(inv, 37), nameItem(getButton(FreeItems), playerInfo.temp.getTotalUnitQuantity() + " bulks total"));
-		if (playerInfo.temp.getSeller() != null)
-		    inv.setItem(getRight(inv, 38), nameItem(getButton(FreeItems), "Seller: " + playerInfo.temp.getSeller()));
+		inv.setItem(getRight(inv, 36), nameItem(getButton(FreeItems), "Price: $" + playerInfo.temp.getUnitPrice() + " per bulk unit"));
+		inv.setItem(getRight(inv, 37), nameItem(getButton(FreeItems), playerInfo.temp.getTotalUnitQuantity() + " bulk units total"));
+        inv.setItem(getRight(inv, 38), nameItem(getButton(FreeItems), "Seller: " + playerInfo.temp.getSeller()));
 		
 		// add items
 		int i = 0;
@@ -311,16 +311,16 @@ public class MenuPainter {
         String stage = playerInfo.menu.split(":")[playerInfo.menu.split(":").length - 1];
         switch(stage) {
             case "quantity":
-                InventoryTitleHelper.sendInventoryTitle(player, "Total Quantity = " + playerInfo.temp.getTotalQuantity());
+                InventoryTitleHelper.sendInventoryTitle(player, "Quantity = " + playerInfo.temp.getTotalQuantity());
                 break;
             case "bulk":
-                InventoryTitleHelper.sendInventoryTitle(player, "Bulk Unit size = " + playerInfo.temp.getUnitSize());
+                InventoryTitleHelper.sendInventoryTitle(player, "Quantity per Bulk Unit = " + playerInfo.temp.getUnitSize());
                 break;
             case "price":
-                InventoryTitleHelper.sendInventoryTitle(player, "Bulk Unit price = $" + playerInfo.temp.getUnitPrice());
+                InventoryTitleHelper.sendInventoryTitle(player, "Price per Bulk Unit = $" + playerInfo.temp.getUnitPrice());
                 break;
             default:
-                InventoryTitleHelper.sendInventoryTitle(player, "Total Quantity = " + playerInfo.temp.getTotalQuantity());
+                InventoryTitleHelper.sendInventoryTitle(player, "Quantity = " + playerInfo.temp.getTotalQuantity());
         }
 
 		// add menu buttons
@@ -331,11 +331,19 @@ public class MenuPainter {
 		//add back button
 		inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
 
-		//add increment and decrement buttons
-		for (int i = 0; i < 9; i++) {
-			inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
-			inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
-		}
+        //add increment and decrement buttons
+        if (stage.equals("quantity") || stage.equals("bulk"))
+        {
+            for (int i = 0; i < 4; i++) {
+                inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
+                inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
+            }
+        } else if (stage.equals("price")) {
+            for (int i = 0; i < 9; i++) {
+                inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
+                inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
+            }
+        }
 
         //add the item if it exists
 		int i = 0;
@@ -366,16 +374,16 @@ public class MenuPainter {
         String stage = playerInfo.menu.split(":")[playerInfo.menu.split(":").length - 1];
         switch(stage) {
             case "quantity":
-                InventoryTitleHelper.sendInventoryTitle(player, "Sell Items: Total Quantity = Infinite");
+                InventoryTitleHelper.sendInventoryTitle(player, "Quantity = Infinite");
                 break;
             case "bulk":
-                InventoryTitleHelper.sendInventoryTitle(player, "Sell Items: Quantity per Bulk Unit = " + playerInfo.temp.getUnitSize());
+                InventoryTitleHelper.sendInventoryTitle(player, "Quantity per Bulk Unit = " + playerInfo.temp.getUnitSize());
                 break;
             case "price":
-                InventoryTitleHelper.sendInventoryTitle(player, "Sell Items: Price per Bulk Unit = $" + playerInfo.temp.getUnitPrice());
+                InventoryTitleHelper.sendInventoryTitle(player, "Price per Bulk Unit = $" + playerInfo.temp.getUnitPrice());
                 break;
             default:
-                InventoryTitleHelper.sendInventoryTitle(player, "Sell Items: Quantity = Infinite");
+                InventoryTitleHelper.sendInventoryTitle(player, "Quantity = Infinite");
         }
 
         // add menu buttons
@@ -386,14 +394,14 @@ public class MenuPainter {
         //add back button
         inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
 
-        if (playerInfo.menu.split(":")[playerInfo.menu.split(":").length - 1].equalsIgnoreCase("quantity")) {
-            //remove increment and decrement buttons
-            for (int i = 0; i < 9; i++) {
-                inv.setItem(getRight(inv, 27 + i), null);
-                inv.setItem(getRight(inv, 18 + i), null);
+        //add increment and decrement buttons
+        if (stage.equals("bulk"))
+        {
+            for (int i = 0; i < 4; i++) {
+                inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
+                inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
             }
-        } else {
-            //add increment and decrement buttons
+        } else if (stage.equals("price")) {
             for (int i = 0; i < 9; i++) {
                 inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
                 inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
@@ -424,16 +432,16 @@ public class MenuPainter {
         String stage = playerInfo.menu.split(":")[playerInfo.menu.split(":").length - 1];
         switch(stage) {
             case "quantity":
-                InventoryTitleHelper.sendInventoryTitle(player, "Sell Items Globally: Total Quantity = Infinite");
+                InventoryTitleHelper.sendInventoryTitle(player, "Quantity = Infinite");
                 break;
             case "bulk":
-                InventoryTitleHelper.sendInventoryTitle(player, "Sell Items Globally: Quantity per Bulk Unit = " + playerInfo.temp.getUnitSize());
+                InventoryTitleHelper.sendInventoryTitle(player, "Quantity per Bulk Unit = " + playerInfo.temp.getUnitSize());
                 break;
             case "price":
-                InventoryTitleHelper.sendInventoryTitle(player, "Sell Items Globally: Price per Bulk Unit = $" + playerInfo.temp.getUnitPrice());
+                InventoryTitleHelper.sendInventoryTitle(player, "Price per Bulk Unit = $" + playerInfo.temp.getUnitPrice());
                 break;
             default:
-                InventoryTitleHelper.sendInventoryTitle(player, "Sell Items Globally: Quantity = Infinite");
+                InventoryTitleHelper.sendInventoryTitle(player, "Quantity = Infinite");
         }
 
         // add menu buttons
@@ -444,14 +452,14 @@ public class MenuPainter {
         //add back button
         inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));
 
-        if (playerInfo.menu.split(":")[playerInfo.menu.split(":").length - 1].equalsIgnoreCase("quantity")) {
-            //remove increment and decrement buttons
-            for (int i = 0; i < 9; i++) {
-                inv.setItem(getRight(inv, 27 + i), null);
-                inv.setItem(getRight(inv, 18 + i), null);
+        //add increment and decrement buttons
+        if (stage.equals("bulk"))
+        {
+            for (int i = 0; i < 4; i++) {
+                inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
+                inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
             }
-        } else {
-            //add increment and decrement buttons
+        } else if (stage.equals("price")) {
             for (int i = 0; i < 9; i++) {
                 inv.setItem(getRight(inv, 27 + i), nameItem(getButton(Up), "Increment"));
                 inv.setItem(getRight(inv, 18 + i), nameItem(getButton(Down), "Decrement"));
@@ -494,7 +502,8 @@ public class MenuPainter {
         inv.clear();
 
 		// add menu buttons
-		inv.setItem(getLeft(inv, 0), nameItem(getButton(SellOrRequest), "Edit Global Market Sales"));
+		inv.setItem(getLeft(inv, 0), nameItem(getButton(SellOrRequest), "Edit Server Market Sales"));
+		inv.setItem(getLeft(inv, 1), nameItem(getButton(SellOrRequest), "Edit Global Market Sales"));
 
 		// add back button
 		inv.setItem(getRight(inv, 0), nameItem(getButton(Cancel), "Go Back"));

@@ -5,9 +5,12 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
 
+import com.m0pt0pmatt.GUIM.Player.PlayerInfo;
+import net.milkbowl.vault.item.Items;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import com.m0pt0pmatt.bettereconomy.accounts.UUIDFetcher;
@@ -178,27 +181,30 @@ public class MarketSale {
 	public void setPickedUp(int pickedUp){
 		this.pickedUp = pickedUp;
 	}
-	
-	@Override
-	public String toString() {
-		String itemDescription = "\n" + ChatColor.GREEN;
-		if (items != null && items.size() == 1) {
-			itemDescription += items.get(0).getType().toString();
-		} else {
-			itemDescription += "Item Package";
-		}
-		
-		itemDescription += ChatColor.RESET;
 
-		String sellerName;
-		if (seller != null) {
-            OfflinePlayer p = Bukkit.getOfflinePlayer(seller);
-            sellerName = p.getName();
-        } else {
-            sellerName = "the Server";
+	public String getSaleInfo(PlayerInfo buyerInfo, boolean playerIsSeller) {
+        String saleInfo = "";
+
+        if (seller != null) {
+            if (playerIsSeller) {
+                saleInfo += "Buyer: " + buyerInfo.name + "\n";
+            } else {
+                saleInfo += "Seller: " + Bukkit.getOfflinePlayer(seller).getName() + "\n";
+            }
         }
 
-		return itemDescription + "\nPrice: " + ChatColor.DARK_RED + this.unitPrice + ChatColor.RESET + "\nSeller: " + sellerName;
+        saleInfo += "Units purchased: " + buyerInfo.unitQuantity + "\n";
+        saleInfo += "Price per Unit: $" + unitPrice + "\n";
+        saleInfo += "Total Price: $" + unitPrice * buyerInfo.unitQuantity + "\n";
+        saleInfo += "\n";
+        saleInfo += "Total Items Purchased:\n";
+        for (ItemStack stack : items)
+        {
+            saleInfo += unitSize * buyerInfo.unitQuantity + " " + Items.itemByStack(stack).getName();
+            if (items.indexOf(stack) < items.size() - 1)
+                saleInfo += "\n";
+        }
+        return saleInfo;
 	}
 	
 	/**
@@ -206,11 +212,11 @@ public class MarketSale {
 	 * @return
 	 */
 	public Map<String,Object> serialize() {
-		Map<String,Object> m = new HashMap<String,Object>();
+		Map<String,Object> m = new HashMap<String, Object>();
 		
 		//first, add the easy fields
         if (seller != null)
-            m.put("seller", seller);
+            m.put("seller", seller.toString());
 		m.put("unitPrice", unitPrice);
 		m.put("unitSize", unitSize);
 		m.put("quantity", quantity);
@@ -246,14 +252,16 @@ public class MarketSale {
 		int pickedUp = 0;
 		
 		//first, get the easy fields
-		if (args.containsKey("seller")){
+		if (args.containsKey("seller")) {
 			try {
-				seller = UUID.fromString((String) args.get("seller"));
+			    // if the value stored is a UUID
+			    seller = UUID.fromString((String) args.get("seller"));
 			} catch (IllegalArgumentException e) {
 				try {
+				    // if, for whatever reason, the value is a username
 					seller = UUIDFetcher.getUUIDOf((String) args.get("seller"));
 				} catch (Exception e2) {
-					Bukkit.getLogger().warning("Unable to determine player:\n" + ChatColor.RED + (String) args.get("seller") + ChatColor.RESET);
+					Bukkit.getLogger().warning("Unable to determine player:\n" + ChatColor.RED + args.get("seller") + ChatColor.RESET);
 				}
 			}
 		}

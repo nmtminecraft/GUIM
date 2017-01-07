@@ -1,13 +1,7 @@
 package com.m0pt0pmatt.GUIM;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -41,8 +35,7 @@ public class GUIM extends JavaPlugin {
 	/**
 	 * A mapping of all markets
 	 */
-	public static HashMap<String, Market> marketNames = null;
-	public static HashMap<Location, Market> marketLocations = null;
+	public static HashMap<String, Market> markets = null;
 	
 	/**
 	 * This maps players name to the information this plugin requires of them.
@@ -50,6 +43,8 @@ public class GUIM extends JavaPlugin {
 	private static HashMap<UUID, PlayerInfo> playerInfo;
 	
 	public static MarketListener marketListener = null;
+
+	private static HashMap<Location, Market> marketLocations;
 	
 	
 	/**
@@ -60,7 +55,7 @@ public class GUIM extends JavaPlugin {
 		this.getCommand("guim").setTabCompleter(new MarketTabCompleter());
 		
 		//create the market map
-		marketNames = new HashMap<String, Market>();
+		markets = new HashMap<String, Market>();
 		marketLocations = new HashMap<Location, Market>();
 			
 		//create the playerInfo map
@@ -130,14 +125,14 @@ public class GUIM extends JavaPlugin {
 	 * Saves everything
 	 */
 	public void save() {
-		getLogger().info("Saving markets to file");
+		getLogger().info("Saving markets to file.");
 		
 		//save the markets
-		for (Market market : marketNames.values()) {
+		for (Market market : markets.values()) {
 			market.save();
 		}
 		
-		getLogger().info("Markets have been saved successfully");
+		getLogger().info("Markets have been saved successfully.");
 		
 	}
 	
@@ -145,12 +140,11 @@ public class GUIM extends JavaPlugin {
 	 * loads everything
 	 */
 	public void load() {
-		getLogger().info("Loaded markets from file");
+		getLogger().info("Loaded markets from file.");
 		
 		//clear old markets
-		marketNames.clear();
-		marketLocations.clear();
-		getLogger().info("Old markets are cleaned");
+		markets.clear();
+		getLogger().info("Old markets have been cleaned.");
 		
 		if (!this.getDataFolder().exists()) {
 			this.getDataFolder().mkdir();
@@ -164,15 +158,14 @@ public class GUIM extends JavaPlugin {
 			}
 		}
 		
-		getLogger().info("Markets have been loaded successfully");
+		getLogger().info("Markets have been loaded successfully.");
 		
 	}	
 	
 	private void addMarket(File file) {
 		FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 		
-		//get the name and owner of the market
-		String name = (String)config.get("name");
+		//get the owner and name of the market
 		UUID owner = null;
 		try {
 			owner = UUID.fromString(config.getString("owner"));
@@ -183,28 +176,23 @@ public class GUIM extends JavaPlugin {
 				e2.printStackTrace();
 			}
 		}
-		
-		String fullName = "";
-		if (owner != null) {
-			fullName += Bukkit.getOfflinePlayer(owner).getName()+" -- ";
-		}
-		fullName += name;
-		
+        String name = (String)config.get("name");
+
 		//get the access locations
-		HashSet<Location> locations = this.getLocations(config);
-		
+		HashSet<Location> locations = this.loadLocations(config);
+
 		//get the items that are on the market
-		ArrayList<MarketSale> marketItems = this.getSales(config, "marketItems");
-		
+		ArrayList<MarketSale> marketItems = this.loadSales(config, "marketItems");
+
 		//get the items that have been requested
-		ArrayList<MarketSale> requestedItems = this.getSales(config, "requestedItems");
-		
+		ArrayList<MarketSale> requestedItems = this.loadSales(config, "requestedItems");
+
 		//get the free items
-		ArrayList<MarketSale> freeItems = this.getSales(config, "freeItems");
-		
+		ArrayList<MarketSale> freeItems = this.loadSales(config, "freeItems");
+
 		HashMap<UUID, Integer> numSales = new HashMap<UUID, Integer>();
 		MemorySection memory = (MemorySection) config.get("currentSales");
-		
+
 		//for each player
 		for (String playerName: memory.getKeys(false)) {
 			try {
@@ -216,7 +204,7 @@ public class GUIM extends JavaPlugin {
 				} catch (Exception e2) {
 					e2.printStackTrace();
 				}
-				
+
 				if (p != null) {
 					numSales.put(p.getUniqueId(), (Integer) memory.get(playerName));
 				} else {
@@ -224,7 +212,7 @@ public class GUIM extends JavaPlugin {
 				}
 			}
 		}
-		
+
 		//create the market
 		Market market = new Market(owner, name, locations, numSales, this);
 		market.marketItems = marketItems;
@@ -232,15 +220,11 @@ public class GUIM extends JavaPlugin {
 		market.freeItems = freeItems;
 		
 		//add the market
-		marketNames.put(fullName, market);
-		for (Location location : locations) {
-			marketLocations.put(location, market);
-		}
-		
-		
+		markets.put(market.getFullName(), market);
+		updateMarketLocations();
 	}
 	
-	private HashSet<Location> getLocations(FileConfiguration config) {
+	private HashSet<Location> loadLocations(FileConfiguration config) {
 		HashSet<Location> locations = new HashSet<Location>();
 		
 		//get the memory section
@@ -270,7 +254,7 @@ public class GUIM extends JavaPlugin {
 		return locations;
 	}
 	
-	private ArrayList<MarketSale> getSales(FileConfiguration config, String whichList) {
+	private ArrayList<MarketSale> loadSales(FileConfiguration config, String whichList) {
 		MemorySection memory = (MemorySection) config.get(whichList);
 		ArrayList<MarketSale> sales = new ArrayList<MarketSale>();		
 		
@@ -347,7 +331,21 @@ public class GUIM extends JavaPlugin {
 		playerInfo.put(playerName, new PlayerInfo(playerName));
 	}
 
+    public static Map<Location, Market> getMarketLocations() {
+        return Collections.unmodifiableMap(marketLocations);
+    }
 
+    public static void updateMarketLocations() {
+	    marketLocations.clear();
+
+        for (Market m : markets.values())
+        {
+            for (Location loc : m.getAccessBlocks())
+            {
+                marketLocations.put(loc, m);
+            }
+        }
+    }
 	
 	public static void updateMenu(String marketName, String whichMenu) {
 		String menu;
@@ -356,7 +354,7 @@ public class GUIM extends JavaPlugin {
 			if (menu != null) {
 				if (menu.equals(whichMenu)) {
 					//players menu needs to be updated
-					MenuPainter.paintMenu(Bukkit.getPlayer(pInfo.name));
+					MenuPainter.paintMenu(Bukkit.getPlayer(pInfo.uuid));
 				}
 			}
 		}

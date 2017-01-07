@@ -40,7 +40,9 @@ public class PlayerInfo {
 	 */
 	public MarketSale temp = null;
 	
-	public UUID name = null;
+	public UUID uuid = null;
+
+	public String name;
 	
 	/**
 	 * how many units a player wants to buy/sell/etc
@@ -69,14 +71,15 @@ public class PlayerInfo {
 	
 	/**
 	 * Creates a new PlayerInfo, given a player's name
-	 * @param playerName
+	 * @param playerId
 	 */
-	public PlayerInfo(UUID playerName){
-		name = playerName;
+	public PlayerInfo(UUID playerId){
+		uuid = playerId;
+		name = Bukkit.getOfflinePlayer(uuid).getName();
 		currentMarket = null;
 		index = 0;
 		slots = 0;
-		inventory = Bukkit.getServer().createInventory(Bukkit.getPlayer(playerName), 54, "Market: ");
+		inventory = Bukkit.getServer().createInventory(Bukkit.getPlayer(playerId), 54, "Market: ");
 	}
 	
 }
