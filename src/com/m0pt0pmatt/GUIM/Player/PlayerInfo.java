@@ -1,13 +1,15 @@
-package com.m0pt0pmatt.GUIM;
+package com.m0pt0pmatt.GUIM.Player;
 
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.Inventory;
+
+import com.m0pt0pmatt.GUIM.MarketSale;
 /**
  * This class keeps track of all variables for one player.
- * @author Matthew Broomfield
+ * @author Matthew Broomfield, James Pelster
  */
 
 public class PlayerInfo {
@@ -19,7 +21,7 @@ public class PlayerInfo {
 	public String currentMarket = null;
 	
 	/**
-	 * Which page the player in currently viewing. Used when a menu has multiple pages/screens
+	 * Which page the player is currently viewing. Used when a menu has multiple pages/screens
 	 */
 	public int index = 0;
 	
@@ -38,7 +40,9 @@ public class PlayerInfo {
 	 */
 	public MarketSale temp = null;
 	
-	public UUID name = null;
+	public UUID uuid = null;
+
+	public String name;
 	
 	/**
 	 * how many units a player wants to buy/sell/etc
@@ -67,14 +71,15 @@ public class PlayerInfo {
 	
 	/**
 	 * Creates a new PlayerInfo, given a player's name
-	 * @param playerName
+	 * @param playerId
 	 */
-	public PlayerInfo(UUID playerName){
-		name = playerName;
+	public PlayerInfo(UUID playerId){
+		uuid = playerId;
+		name = Bukkit.getOfflinePlayer(uuid).getName();
 		currentMarket = null;
 		index = 0;
 		slots = 0;
-		inventory = Bukkit.getServer().createInventory(Bukkit.getPlayer(playerName), 54);
+		inventory = Bukkit.getServer().createInventory(Bukkit.getPlayer(playerId), 54, "Market: ");
 	}
 	
 }

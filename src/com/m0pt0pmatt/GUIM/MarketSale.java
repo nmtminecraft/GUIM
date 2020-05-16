@@ -5,42 +5,49 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
 
+import com.m0pt0pmatt.GUIM.Player.PlayerInfo;
+import net.milkbowl.vault.item.Items;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import com.m0pt0pmatt.bettereconomy.accounts.UUIDFetcher;
 
 /**
  * Represents a sale on a market. Could be a normal sale, free item(s), or requested item(s)
  * A MarketSale is a multiple of units, where a unit is a collection of items. This is confusing, so here's an example
  * A unit is 5 coal and 5 wooden blocks. The sale has 20 units at $40 per unit
- * @author Matthew
+ * @author Matthew Broomfield, James Pelster
  *
  */
 public class MarketSale {
 
 	/**
-	 * The items that are the parts of the MarketSale
+	 * The items that are part of the MarketSale
 	 */
-	private LinkedList<ItemStack> items;
+	protected LinkedList<ItemStack> items;
 	
 	/**
 	 * The seller/requester of the item(s)
 	 */
-	private String seller;
+	private UUID seller;
 	
 	/**
-	 * the price of one sale unit
+	 * the price of one bulk unit
 	 */
-	private int unitPrice;
+	protected int unitPrice;
 	
 	/**
-	 * the number of units
+	 * the number of items per bulk unit
 	 */
-	private int numPerUnits;
+	protected int unitSize;
 	
 	/**
 	 * the total number of items which are in the entire sale
 	 */
-	private int quantity;
+	protected int quantity;
 	
 	/**
 	 * the number of units which have been fulfilled (request only)
@@ -48,37 +55,28 @@ public class MarketSale {
 	private int fulfilled;
 	
 	/**
-	 * the number of units that have been picked up by the seller 
+	 * the number of units that have been purchased
 	 */
 	private int pickedUp;
-	
-	
-	public MarketSale(){
-		this.seller = null;
-		this.unitPrice = 0;
-		this.numPerUnits = 1;
-		this.quantity = 1;
-		this.fulfilled = 0;
-		items = new LinkedList<ItemStack>();
-	}
 	
 	/**
 	 * Default constructor
 	 * @param seller
 	 */
-	public MarketSale(UUID seller){
-		this.seller = seller.toString();
+	public MarketSale(UUID seller) {
+		this.seller = seller;
 		this.unitPrice = 0;
-		this.numPerUnits = 1;
+		this.unitSize = 1;
 		this.quantity = 1;
 		this.fulfilled = 0;
+        this.pickedUp = 0;
 		items = new LinkedList<ItemStack>();
 	}
 	
 	public MarketSale(UUID seller, int price, int bulk, int quantity) {
-		this.seller = seller.toString();
+		this.seller = seller;
 		this.unitPrice = price;
-		this.numPerUnits = bulk;
+		this.unitSize = bulk;
 		this.quantity = quantity;
 		this.fulfilled = 0;
 		this.pickedUp = 0;
@@ -86,9 +84,9 @@ public class MarketSale {
 	}
 	
 	public MarketSale(UUID seller, int price, int bulk, int quantity, LinkedList<ItemStack> items, int fulfilled, int pickedUp) {
-		this.seller = seller.toString();
+		this.seller = seller;
 		this.unitPrice = price;
-		this.numPerUnits = bulk;
+		this.unitSize = bulk;
 		this.quantity = quantity;
 		this.items = items;
 		this.fulfilled = fulfilled;
@@ -96,15 +94,13 @@ public class MarketSale {
 	}
 	
 	/**
-	 * Returns the seller of the ItemStack
 	 * @return the seller of the ItemStack
 	 */
-	public UUID getSeller(){
-		return UUID.fromString(seller);
+	public UUID getSeller() {
+		return seller;
 	}
 	
 	/**
-	 * Returns the price of the ItemStack
 	 * @return the price of the ItemStack
 	 */
 	public int getUnitPrice(){
@@ -112,23 +108,22 @@ public class MarketSale {
 	}
 	
 	/**
-	 * Returns whether or not the ItemStack is for bulk sale
-	 * @return whether or not the ItemStack is for bulk sale
+	 * @return the number of items per bulk unit
 	 */
-	public int getNumPerUnits(){
-		return numPerUnits;
+	public int getUnitSize(){
+		return unitSize;
 	}
 	
 	public int getTotalQuantity(){
 		return quantity;
 	}
 	
-	public int getAvailiableUnits(){
-		return (quantity / numPerUnits) - fulfilled - pickedUp;
+	public int getAvailiableUnits() {
+        return (quantity / unitSize) - fulfilled - pickedUp;
 	}
 	
-	public int getUnitQuantity(){
-		return quantity / numPerUnits;
+	public int getTotalUnitQuantity(){
+		return quantity / unitSize;
 	}
 	
 	public int getFulfilled(){
@@ -155,7 +150,7 @@ public class MarketSale {
 	 * Sets the price of the ItemStack
 	 * @param price the price of the ItemStack to be set
 	 */
-	public void setPrice(int price){
+	public void setUnitPrice(int price){
 		this.unitPrice = price;
 	}
 	
@@ -164,15 +159,15 @@ public class MarketSale {
 	 * @param seller the seller of the ItemStack to be set
 	 */
 	public void setSeller(UUID seller){
-		this.seller = seller.toString();
+		this.seller = seller;
 	}
 
 	/**
-	 * Sets the ItemStack to be or not be for bulk sale
-	 * @param bulk
+	 * Sets the number of items per bulk unit
+	 * @param unitSize the number of items to be in each bulk unit
 	 */
-	public void setNumPerUnits(int numPerUnits){
-		this.numPerUnits = numPerUnits;
+	public void setUnitSize(int unitSize){
+		this.unitSize = unitSize;
 	}
 	
 	public void setTotalQuantity(int quantity){
@@ -186,28 +181,44 @@ public class MarketSale {
 	public void setPickedUp(int pickedUp){
 		this.pickedUp = pickedUp;
 	}
-	
-	@Override
-	public String toString(){
-		return "{"
-				+ "seller " + Bukkit.getOfflinePlayer(UUID.fromString(this.seller)).getName() + ", "
-				+ "items: " + items.toString() + ", "
-				+ "price " + this.unitPrice + ", " 
-				+ "isBulk " + numPerUnits
-				+ "}";		
+
+	public String getSaleInfo(PlayerInfo buyerInfo, boolean playerIsSeller) {
+        String saleInfo = "";
+
+        if (seller != null) {
+            if (playerIsSeller) {
+                saleInfo += "Buyer: " + buyerInfo.name + "\n";
+            } else {
+                saleInfo += "Seller: " + Bukkit.getOfflinePlayer(seller).getName() + "\n";
+            }
+        }
+
+        saleInfo += "Units purchased: " + buyerInfo.unitQuantity + "\n";
+        saleInfo += "Price per Unit: $" + unitPrice + "\n";
+        saleInfo += "Total Price: $" + unitPrice * buyerInfo.unitQuantity + "\n";
+        saleInfo += "\n";
+        saleInfo += "Total Items Purchased:\n";
+        for (ItemStack stack : items)
+        {
+            saleInfo += unitSize * buyerInfo.unitQuantity + " " + Items.itemByStack(stack).getName();
+            if (items.indexOf(stack) < items.size() - 1)
+                saleInfo += "\n";
+        }
+        return saleInfo;
 	}
 	
 	/**
 	 * Changes a MarketSale into a hash so it can be stored in a file
 	 * @return
 	 */
-	public Map<String,Object> serialize(){
-		Map<String,Object> m = new HashMap<String,Object>();
+	public Map<String,Object> serialize() {
+		Map<String,Object> m = new HashMap<String, Object>();
 		
 		//first, add the easy fields
-		m.put("price", unitPrice);
-		m.put("seller", seller);
-		m.put("bulk", numPerUnits);
+        if (seller != null)
+            m.put("seller", seller.toString());
+		m.put("unitPrice", unitPrice);
+		m.put("unitSize", unitSize);
 		m.put("quantity", quantity);
 		m.put("fulfilled", fulfilled);
 		m.put("pickedUp", pickedUp);
@@ -232,26 +243,41 @@ public class MarketSale {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static MarketSale deserialize(Map<String, Object> args){
+	public static MarketSale deserialize(Map<String, Object> args) {
 		UUID seller = null;
-		int price = 0;
-		int bulk = 1;
+		int unitPrice = 0;
+		int unitSize = 1;
 		int quantity = 1;
 		int fulfilled = 0;
 		int pickedUp = 0;
 		
 		//first, get the easy fields
-		if (args.containsKey("seller")){
-			seller = UUID.fromString((String) args.get("seller")) ;
+		if (args.containsKey("seller")) {
+			try {
+			    // if the value stored is a UUID
+			    seller = UUID.fromString((String) args.get("seller"));
+			} catch (IllegalArgumentException e) {
+				try {
+				    // if, for whatever reason, the value is a username
+					seller = UUIDFetcher.getUUIDOf((String) args.get("seller"));
+				} catch (Exception e2) {
+					Bukkit.getLogger().warning("Unable to determine player:\n" + ChatColor.RED + args.get("seller") + ChatColor.RESET);
+				}
+			}
 		}
-		
-		if (args.containsKey("price")){
-			price = (Integer) args.get("price");
+
+
+        if (args.containsKey("unitPrice")){
+            unitPrice = (Integer) args.get("unitPrice");
+        } else if (args.containsKey("price")){
+			unitPrice = (Integer) args.get("price");
 		}
-		
-		if (args.containsKey("bulk")){
-			bulk = (Integer) args.get("bulk");
-		}
+
+        if (args.containsKey("unitSize")){
+            unitSize = (Integer) args.get("unitSize");
+        } else if (args.containsKey("bulk")){
+            unitSize = (Integer) args.get("bulk");
+        }
 		
 		if (args.containsKey("quantity")){
 			quantity = (Integer) args.get("quantity");
@@ -272,10 +298,9 @@ public class MarketSale {
 		}
 		
 		//create the marketsale
-		MarketSale m = new MarketSale(seller, price, bulk, quantity, items, fulfilled, pickedUp);
+		MarketSale m = new MarketSale(seller, unitPrice, unitSize, quantity, items, fulfilled, pickedUp);
 
 		return m;
-		
 	}
 	
 }

@@ -1,4 +1,4 @@
-package com.m0pt0pmatt.GUIM;
+package com.m0pt0pmatt.GUIM.IO;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -6,6 +6,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
+/**
+ * Handles giving players help books to assist them with each area of the Market.
+ * @author Matthew Broomfield, James Pelster
+ */
 public class HelpBookCreator {
 
 	private static boolean hasRoom(Inventory inv){
@@ -27,7 +31,7 @@ public class HelpBookCreator {
 		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) book.getItemMeta();
 		
-		meta.setTitle("GUIM help: Main menu");
+		meta.setTitle("GUIM Help: Main Menu");
 		meta.setAuthor("");
 		
 		meta.addPage("Main Menu \nClick on a button to open a new menu.");

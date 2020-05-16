@@ -1,7 +1,8 @@
 name: GUIM
 main: com.m0pt0pmatt.GUIM.GUIM
-version: 0.3
-softdepend: [Vault]
+version: 0.7
+softdepend: [Vault, BetterEconomy]
 commands:
     GUIM:
+        aliases: [guim, guimarket, market, GUIMarket]
         description: the everything command
